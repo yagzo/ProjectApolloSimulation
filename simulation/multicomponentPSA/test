@@ -1,0 +1,20 @@
+#!/usr/bin/env python3.7
+
+from cgi import test
+from params import create_param
+from onebedmulticomponent import adsorp_equilibrium
+from onebedmulticomponent import adsorp_equilibrium_array
+from onebedmulticomponent import create_norm
+from onebedmulticomponent import compute_alpha
+import numpy as np
+from onebedmulticomponent import AttrDict
+from onebedmulticomponent import simulate_singlebed
+
+simulate_singlebed()
+
+
+
+
+
+
+
