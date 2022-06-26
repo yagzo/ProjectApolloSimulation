@@ -275,16 +275,18 @@ def plot_singlebed(data, roi=None, pause=False,  out_place='./plot', cycles=None
     #q is True at the places we want to sample data
     tdec=tdec[q]
    ##########################################3
-  ### Spatial plots of Velocity, Pressure, and yA
+  ### Spatial plots of Velocity, Pressure, and yi ()
   for i,d in enumerate((data.data1,)):
-    fig,axs=plt.subplots(3,1,sharex=True)
-    ax1,ax2,ax3=axs
+    num_subplot = 2 + len(d.param.ynames)
+    fig,axs=plt.subplots(num_subplot,1,sharex=True)
+    ax1=axs[0]
+    ax2=axs[1]
     lines=ax2.plot(d.P[:,q], label='Pressure')
     fig.legend(iter(lines), ['t={:6.4f}'.format(t) for t in tdec],
                loc="center right", borderaxespad=0.1)
     ax2.set_title('Pressure - Container {}'.format(i+1),pad=3)
     #ax2.set_ylim(bottom=0)
-    ax3.set_xlabel('position z')
+    
     ax1.plot(d.v[:,q])
     ax1.set_title('velocity - Container {} {}'.format(i+1,text),pad=3)
     ax1.set_ylabel('vel [normalized]')
@@ -292,10 +294,13 @@ def plot_singlebed(data, roi=None, pause=False,  out_place='./plot', cycles=None
     mps_to_v2=functools.partial(v_to_mps, norm_v0=d.param.norm_v0)
     secax=ax1.secondary_yaxis('right', functions=(v_to_mps2,mps_to_v2))
     secax.set_ylabel('vel [m/s]')
-    plt.subplots_adjust(right=.77)
-  
-    ax3.plot(d.yA[:,q])
-    ax3.set_title('yA - Container {}'.format(i+1),pad=3)
+    #plt.subplots_adjust(right=0.77)
+    #plt.subplots_adjust(top=0.7)
+    for yi in d.param.ynames:
+      
+      axs[d.param.ynames.index(yi)+2].plot(d[yi][:,q]) # here +2 because we have velocity and pressure plots before
+      axs[d.param.ynames.index(yi)+2].set_title('{} - Container {}'.format(yi, i+1), pad=3)
+    axs[-1].set_xlabel('position z')
     #ax3.set_ylim(bottom=0)
     #plt.tight_layout()
     plt.savefig('{}-space{}.svg'.format(out_place,i+1))
@@ -303,8 +308,10 @@ def plot_singlebed(data, roi=None, pause=False,  out_place='./plot', cycles=None
   #### Time plots of Velocity, Pressure, yA
   mid=int(param.N/2)
   for i,d in enumerate((data.data1,)):
-    fig,axs=plt.subplots(3,1,sharex=True)
-    ax1,ax2,ax3=axs
+    num_subplot = 2 + len(d.param.ynames)
+    fig,axs=plt.subplots(num_subplot,1,sharex=True)
+    ax1 = axs[0]
+    ax2 = axs[1]
     #axs1 = axs
     #draw the vertical cycle and crossvalve bars
     #for ax in axs:
@@ -316,8 +323,8 @@ def plot_singlebed(data, roi=None, pause=False,  out_place='./plot', cycles=None
     #ax1.plot(bunch.t, vin, label='in flow')  #marker='.'
     #ax1.plot(bunch.t, vout, label='out flow')
     ax1.plot(times, d.v[mid,mask], label='mid flow')
-    ax1.plot(times, d.v[1,mask], label='V1 flow')
-    ax1.plot(times, d.v[-2,mask], label='VN flow')
+    ax1.plot(times, d.v[1,mask], label='v0 flow')
+    ax1.plot(times, d.v[-2,mask], label='vN flow')
     ax1.legend()
     ax1.set_ylabel('flow rate (normalized)')
     #ax1.set_ylabel('flow Ncm3/s')
@@ -330,13 +337,15 @@ def plot_singlebed(data, roi=None, pause=False,  out_place='./plot', cycles=None
     #ax2.set_ylim(bottom = 0)
     ax2.legend()
     ax2.set_title('Pressure')
-    ax3.plot(times, d.yA[0,mask], label='yA1 (in)')
-    ax3.plot(times, d.yA[param.N-1,mask], label='yAN (out)')
-    ax3.legend()
-    ax3.set_title('yA - fraction O2')
-    ax3.set_ylabel('fraction')
-    #ax3.set_ylim(bottom = 0)
-    ax3.set_xlabel('time (normalized)')
+    for yi in d.param.ynames:
+      axs[d.param.ynames.index(yi)+2].plot(times, d[yi][0,mask], label='{}0 (in)'.format(yi))
+      axs[d.param.ynames.index(yi)+2].plot(times, d[yi][param.N-1,mask], label='{}L (out)'.format(yi))
+      axs[d.param.ynames.index(yi)+2].legend()
+      axs[d.param.ynames.index(yi)+2].set_title('{}'.format(yi))
+      axs[d.param.ynames.index(yi)+2].set_ylabel('fraction')
+      #axs[d.param.ynames.index(yi)+2].set_ylim(bottom = 0)
+    axs[-1].set_xlabel('time (normalized)')
+    #plt.subplots_adjust(right=0.77)
     #plt.tight_layout()
     plt.savefig('{}-time{}.svg'.format(out_place,i+1))
   #####################################3

@@ -1,18 +1,49 @@
 #!/usr/bin/env python3.7
 
 from cgi import test
-from params import create_param
-from onebedmulticomponent import adsorp_equilibrium
+from pydoc import importfile
+from params_ternary import create_param
+from onebedmulticomponent import adsorp_equilibrium, cyclic_steady_state, plot_data
 from onebedmulticomponent import adsorp_equilibrium_array
 from onebedmulticomponent import create_norm
 from onebedmulticomponent import compute_alpha
+from onebedmulticomponent import plot_data
+from onebedmulticomponent import cyclic_steady_state
 import numpy as np
 from onebedmulticomponent import AttrDict
 from onebedmulticomponent import simulate_singlebed
+from difference import gen_j5_functions
+from difference import diffplus
+from difference import diffminus
+import pickle
 
-simulate_singlebed()
+#P=[1,2,3,4,5]
+#Pz0=0
+#PzL=6
+#jplus5,jminus5 = gen_j5_functions()
+#Pplus5= jplus5(P,Pz0,PzL)
+#print(Pplus5, np.shape(Pplus5))
+#Pmiuns5= jminus5(P,Pz0, PzL)
+#print(Pmiuns5, np.shape(Pmiuns5))
+#dplus = diffplus(P,PzL)
+#print(dplus)
+#dminus = diffminus(P,Pz0)
+#print(dminus)
 
 
+bunch, status = cyclic_steady_state(params_file='params_ternary')
+with open('statusdata_ternary.pickle', 'wb') as f:
+#    # Pickle the 'data' dictionary using the highest protocol available.
+    pickle.dump(status, f, pickle.HIGHEST_PROTOCOL)
+
+with open('statusdata_ternary.pickle', 'rb') as f:
+    # The protocol version used is detected automatically, so we do not
+    # have to specify it.
+    status = pickle.load(f)
+
+bunch = status.snap[1]
+param = create_param(None)
+plot_data(bunch, param ,'./outcome')
 
 
 

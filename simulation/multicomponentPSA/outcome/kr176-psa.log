@@ -1,0 +1,968 @@
+Starting at 2022-06-25 03:53:11.346464
+Args: ./test
+00:00:00.00 time :[60. 61. 62. 63. 64. 65. 66. 67. 68. 69. 70. 71. 72. 73. 74. 75. 76. 77.
+ 78. 79. 80. 81. 82. 83. 84. 85. 86. 87. 88. 89. 90. 91. 92. 93. 94. 95.
+ 96. 97. 98. 99.]
+00:00:00.00 parameters: {'R': 8.314, 'nocomponents': 2, 'xnames': ['xA', 'xB'], 'ynames': ['yA', 'yB'], 'feed_yi': [0.2, 0.8], 'isomodel': 'Langmuir-Freundlich', 'bi': [0.0042, 0.0616], 'qsi': [2.5, 7.3], 'qs0': 7.3, 'ni': [1.006, 0.83], 'ki': [0.62, 0.197], 'Hi': [0, 0], 'mode': 1, 'bed': 1, 'N': 20, 'tstep': 1, 'adsorb': True, 'Ta': 293.15, 'D': 0.083, 'L': 1, 'product_tank_volume': 0.002, 'epsilon': 0.37, 'epsilonp': 0.35, 'rp': 0.0007, 'tauprime': 3.0, 'input_orifice': 2.2, 'output_orifice': 1.4, 'product_orifice': 0.475, 'blowdown_orifice': 2.8, 'vent_orifice': 1.0, 'feed_pressure': 1, 'PI': 50000.0, 'PL': 25000.0, 'PH': 100000.0, 'product_pressure': 2, 'rho_s': 1130, 'rho_w': 7800, 'Cpg': 30.7, 'Cpa': 30.7, 'Cps': 1339, 'Cpw': 502, 'mu': 1.72e-05, 'Dm': 1.6e-05, 'gamma': 1.4, 'Kz': 0.09, 'Kw': 16, 'hin': 8.6, 'hout': 2.5, 'eta': 0.72, 'area': 0.005410607947645022, 'volume': 0.005410607947645022, 'rin': 0.0415, 'rout': 0.2915, 'epst': 0.5873015873015873, 'epsb': 1.7027027027027026, 'cellsize': 0.05, 'deltaZ': 0.05, 'container_vol': 0.005410607947645022, 'vfeed': 1, 'norm_v0': 1, 'norm_t0': 1.0, 'norm_P0': 100000.0, 'norm_T0': 293, 'rho_g': 1.1898660666240475, 'Dp': 5.333333333333333e-06, 'lamda_pre': 0.5, 'lamda_blw': 0.5, 'lamda_eva': 0.5, 'tpre': 15, 'tads': 15, 'tblw': 30, 'teva': 40, 'norm_tpre': 15.0, 'norm_tads': 30.0, 'norm_tblw': 60.0, 'norm_tend': 100.0, 'DL': 0.00049}
+00:00:00.02 State variable P: [[0.50029258        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.50029098        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.50028781        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.50028309        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.50027683        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.50026908        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.50025987        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.50024922        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.50023718        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.50022379        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.50020909        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.50019313        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.50017595        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.50015762        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.50013819        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.50011771        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.50009625        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.50007389        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.50005067        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.5000267         nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]]
+00:00:00.05 State variable T: [[1.00051195        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [1.00051195        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [1.00051195        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [1.00051195        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [1.00051195        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [1.00051195        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [1.00051195        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [1.00051195        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [1.00051195        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [1.00051195        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [1.00051195        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [1.00051195        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [1.00051195        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [1.00051195        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [1.00051195        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [1.00051195        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [1.00051195        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [1.00051195        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [1.00051195        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [1.00051195        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]]
+00:00:00.08 State variable Tw: [[ 1. nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan]
+ [ 1. nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan]
+ [ 1. nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan]
+ [ 1. nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan]
+ [ 1. nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan]
+ [ 1. nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan]
+ [ 1. nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan]
+ [ 1. nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan]
+ [ 1. nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan]
+ [ 1. nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan]
+ [ 1. nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan]
+ [ 1. nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan]
+ [ 1. nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan]
+ [ 1. nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan]
+ [ 1. nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan]
+ [ 1. nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan]
+ [ 1. nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan]
+ [ 1. nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan]
+ [ 1. nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan]
+ [ 1. nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+  nan nan nan nan]]
+00:00:00.10 State variable xA: [[1.36358133e-06            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan]
+ [1.37176095e-06            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan]
+ [1.38514390e-06            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan]
+ [1.40196730e-06            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan]
+ [1.42133880e-06            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan]
+ [1.44285445e-06            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan]
+ [1.46636932e-06            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan]
+ [1.49188052e-06            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan]
+ [1.51947141e-06            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan]
+ [1.54928622e-06            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan]
+ [1.58151965e-06            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan]
+ [1.61641419e-06            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan]
+ [1.65426173e-06            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan]
+ [1.69540735e-06            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan]
+ [1.74025333e-06            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan]
+ [1.78925143e-06            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan]
+ [1.84282434e-06            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan]
+ [1.90094100e-06            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan]
+ [1.96126101e-06            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan]
+ [2.01226224e-06            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan
+             nan            nan            nan            nan]]
+00:00:00.10 State variable xB: [[0.03357936        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.0335774         nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.03357479        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.03357167        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.03356807        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.03356401        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.03355948        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.03355449        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.03354902        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.03354307        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.0335366         nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.03352961        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.03352206        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.03351394        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.03350522        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.03349587        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.03348586        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.03347518        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.03346388        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.03345241        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]]
+00:00:00.12 State variable yA: [[0.00199735        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.00200869        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.00202771        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.00205196        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.00208011        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.00211153        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.00214597        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.00218341        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.00222396        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.00226784        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.00231532        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.00236676        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.00242259        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.00248333        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.00254955        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.00262191        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.00270094        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.00278628        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.00287358        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.00294457        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]]
+00:00:00.13 State variable yB: [[0.99800265        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.99799131        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.99797229        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.99794804        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.99791989        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.99788847        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.99785403        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.99781659        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.99777604        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.99773216        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.99768468        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.99763324        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.99757741        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.99751667        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.99745045        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.99737809        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.99729906        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.99721372        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.99712642        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]
+ [0.99705543        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan        nan        nan
+         nan        nan        nan        nan]]
+00:00:00.13 State variable velocity: yB
+00:00:00.83 done

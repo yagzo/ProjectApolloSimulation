@@ -57,12 +57,16 @@ def create_param(mods, print=print):
   #Component related parameters
   param.nocomponents = 2 # number of components
   param.xnames, param.ynames = compnames(param.nocomponents)
+  param.state_names=['P','T','Tw'] + param.xnames + param.ynames
+  param.state_sizes=[] # will be filled in when we do init()
+
   param.feed_yi=[0.2,0.8] #feed gas fraction of component i
+  param.ini_yi = [0.2, 0.8] # gas composition used for initialization state variables yi before calling the odes solver
   param.isomodel='Langmuir-Freundlich' # types of isotherm model (curruntly available:'Langmuir-Freundlich'; )
-  param.bi=[0.0042, 0.0616]   # [1/bar] @ Room temp
-  param.qsi=[2.5, 7.3]  #saturation constant for component i  [mol/kg]=[mmol/g] (at infinite pressure)
-  param.qs0 = 7.3 #[mol/kg]
-  param.ni=[1.006, 0.830]     #exponent on bar pressure of component i (note: not 1/ni)
+  param.bi=[0.0086, 0.25]   # [1/bar] @ Room temp
+  param.qsi=[3.09,5.84]  #saturation constant for component i  [mol/kg]=[mmol/g] (at infinite pressure)
+  param.qs0 = 5.84 #[mol/kg]
+  param.ni=[1.00, 1.00]     #exponent on bar pressure of component i (note: not 1/ni)
   param.ki=[0.620, 0.197]    #mass transfer coefficient
   #not doing Temp and Tw simulation at the moment
   param.Hi=[0,0]                    #heat of adsorption of component i  [J/mol]
@@ -71,9 +75,13 @@ def create_param(mods, print=print):
   #the mode for the difference scheme
   param.mode=1 #differencing scheme 1: forward difference； 2：vanleer； 4：weno 
   param.bed=1 #number of operating beds, its value must be either 1 or 2
-  param.N=20   #discretization steps in spatial direction
+  param.N=20  #discretization steps in spatial direction
+  for s in param.state_names:
+    param.state_sizes.append(param.N)
+  #print('param.state_names={}'.format(param.state_names))
+  #print('param.state_sizes={}'.format(param.state_sizes))
   #tstep will be increased if cycle_time is long (no more than 100 steps per cycle)
-  param.tstep=1        #time step for ODE (dimensionless)
+  param.tstep=1      #time step for ODE (dimensionless)
   param.adsorb=True    #set to True to have adsorption happen
   #cycle_time, vent_time
   #param.cycle_time=36       #time for a half-cycle in dimensionless time units
@@ -82,7 +90,7 @@ def create_param(mods, print=print):
   param.Ta=20+273.15    #room temperature in K
   #Approximate Inviracare XL cylinders
   param.D=0.083     #Diameter of cylinder [m]
-  param.L=0.355      #Length of cylinder (m)  - 13"
+  param.L=1      #Length of cylinder (m)  - 13"
   #Soda Bottle 2L
   #param.D=0.10     #Diameter of cylinder [m]
   #param.L=0.33      #Length of cylinder (m)  - 13"
@@ -101,8 +109,8 @@ def create_param(mods, print=print):
   param.product_orifice=0.475   # dia mm - output from product tank to patient
   param.blowdown_orifice=2.80     # dia mm
   param.vent_orifice=1.0        # dia mm
-  param.feed_pressure=3.5        #pressure in bar (1e5 Pa), absolute
-  param.PI= 1*1e5   # intermediate pressure in Pa                
+  param.feed_pressure=1        #pressure in bar (1e5 Pa), absolute
+  param.PI= 0.5*1e5   # intermediate pressure in Pa                
   param.PL=0.25*1e5 # low pressure in Pa
   param.PH=param.feed_pressure*1e5   #Pa, will be the normalization pressure
 
@@ -173,7 +181,7 @@ def create_param(mods, print=print):
   #Things we have to calculate, need to do this after the overriding
   param.area=(param.D/2)**2*math.pi     #[m2]
   param.volume=param.area*param.L
-  print('canister volume is {} L'.format(param.volume*1000))
+  #print('canister volume is {} L'.format(param.volume*1000))
   param.rin=param.D/2
   param.rout=param.rin + 0.25
   param.epst=param.epsilon/(1-param.epsilon)
@@ -213,7 +221,7 @@ def create_param(mods, print=print):
   #Axial dispersion coefficient m2/sec
   #param.DL=0.7*param.Dm+0.5*param.norm_v0*param.rp*2.0
   param.DL=4.9e-4  # m2/sec from another paper
-  print('param.DL={}'.format(param.DL))
+  #print('param.DL={}'.format(param.DL))
   #compute param.end_time for the simulation
   #want exactly 1 to be not None and 1 None
   #assert (mod.cycles is None) + (mod.time is None) == 1
@@ -248,4 +256,5 @@ def create_param(mods, print=print):
     #set real times
     param.real_cycle_time=param.cycle_time*param.norm_t0
     param.real_vent_time=param.vent_time*param.norm_t0
+  print("parameter initialization completed")
   return param

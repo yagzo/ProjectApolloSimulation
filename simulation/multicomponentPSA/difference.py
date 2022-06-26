@@ -40,10 +40,15 @@ def weno(f,fplus1,fminus1):
 
 def uds_forward(f,fplus1,fminus1):
   #simple Upwind Difference Scheme (UDS) for forward flow
+  #used for the determination of the numeric value of state variables on the boundary
+  #fj+0.5 = fj see eq (25) 
   return f
 
 def uds_backward(f,fplus1,fminus1):
-  #simple Upwind Difference Scheme (UDS) for backward flow 
+  #simple Upwind Difference Scheme (UDS) for backward flow
+  #used for the determination of the numeric value of state variables on the boundary
+  #this is extremely important! the differenc scheme must change according to the flowdirection, namely when the value of v is negative.
+  #fj+0.5 = fj+1 
   return fplus1
 
 ##This generates the function requested
@@ -73,15 +78,15 @@ def gen_j5_functions(mode=1, forward=True):
     #ret=[1.5,2.5,...,N+.5]
     #first we add f0 onto the front of f so that the math can be vectorized
     f1=f[0]
-    f0=f1-2*(f1-f5)
+    f0=f1-2*(f1-f5) #checked
     fN=f[-1]
-    fN1=fN+2*(fN5-fN)
+    fN1=fN+2*(fN5-fN) #checked
     #                             f=[f1,f2,...,fN]
-    fplus1=np.append(f[1:],[0])   # [f2,f3,...,fN, fN+1]
-    fminus1=np.append(f0,f[:-1])  # [f0,f1,...,fN-1]
+    fplus1=np.append(f[1:],fN1)   # [f2,f3,...,fN, fN+1]
+    fminus1=np.append([f0],f[:-1])  # [f0,f1,...,fN-1]
     ret=f5_function(f,fplus1,fminus1)
     #these are the boundary condition values
-    ret[-1]=fN5
+    ret[-1] = fN5
     return ret
   def jminus5(f,f5,fN5):
     #returns array of f(j-.5), where f5=f(.5) and fN5=f(N+.5)
@@ -95,29 +100,36 @@ def gen_j5_functions(mode=1, forward=True):
     fN=f[-1]
     fN1=fN+2*(fN5-fN)
     #                             f=[f1,f2,...,fN]
-    fplus1=np.append(f[1:],fN1)   # [f2,f3,...,fN, fN+1]
-    fminus1=np.append(f0,f[:-1])  # [f0,f1,...,fN-1]
-    ret=f5_function(f,fplus1,fminus1)
+    #fplus1=np.append(f[1:],fN1)   # [f2,f3,...,fN, fN+1]
+    fminus1=np.append([f0],f[:-1])  # [f0,f1,...,fN-1]
+    fminus2 = None 
+    ret=f5_function(fminus1,f,fminus2) # in order to get f_j-0.5, we pass f_j-1 as f_j to the uds function, and because we have f_j+0.5=f_j, it is obvious that if we replace j with j-1, we will get f_j-0.5 = f_j-1
     #these are the boundary condition values
     #first one is special formula
-    ret=np.insert(ret,0,f5)
-    return ret[:-1]   # get rid of the last value
+    #ret=np.insert(ret,0,f5)
+    ret[0] = f5
+    return ret 
   return jplus5, jminus5
   
 
-def diffplus(x, fN5):
+def diffplus(f, fN5):
   #returns array of x(j+1)-x(j)
-  x1=np.roll(x,-1)
-  ret=x1-x
-  ret[-1]=2*(fN5-x[-1])
-  return ret
+  fN=f[-1]
+  fN1=fN+2*(fN5-fN) #checked
+
+  #                             f=[f1,f2,...,fN]
+  fplus1=np.append(f[1:],fN1)   # [f2,f3,...,fN, fN+1]
+  #fminus1=np.append(f0,f[:-1])  # [f0,f1,...,fN-1]
+
+  return fplus1 - f 
   
-def diffminus(x,f5):
+def diffminus(f,f5):
   #returns array of x(j)-x(j-1)
-  x1=np.roll(x,1)
-  ret=x-x1
-  ret[0]=2*(x[0]-f5)
-  return ret
+  f1=f[0]
+  f0=f1-2*(f1-f5)
+  #                             f=[f1,f2,...,fN]
+  fminus1=np.append([f0],f[:-1])  # [f0,f1,...,fN-1]
+  return f - fminus1
 
   
   

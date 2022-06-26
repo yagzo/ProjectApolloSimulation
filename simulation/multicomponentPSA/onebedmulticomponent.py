@@ -16,6 +16,7 @@
 import sys
 import math
 import collections
+from telnetlib import STATUS
 from traceback import print_tb
 from xml.dom.minidom import Attr
 
@@ -67,10 +68,10 @@ import difference
 import mylog
 import util
 
-from params import create_param
+#from params import create_param
 #These global variables in this module will control operation
 param=None
-param=create_param(None)
+#param=create_param(None)
 norm=None
 dg=None
 #for start time for debug output
@@ -84,8 +85,7 @@ class AttrDict(dict):
     self.__dict__ = self
     
 #These are attributes of state variable (keys also)
-state_names=['P','T','Tw'] + param.xnames + param.ynames
-state_sizes=[] # will be filled in when we do init()
+
 
 #All variables are nondimensionalized, normalized by proper values, as given
 #by the norm dict:
@@ -167,6 +167,9 @@ def adsorp_equilibrium(yi,P,isothermtype='Langmuir-Freundlich'):
     if isothermtype == 'Langmuir-Freundlich':      
         #for those concentrations
         #convert to atm partial pressures
+        # sometimes the odes solver would search to a very small negative value of yi such as -0.00145, in order to avoid negative ci when calling the power function (when exponent is not an integer, ci must be a positive value)
+        # solution: we first check if the negative value is close to 0, if so we manually change that negative value to zero
+
         ci= np.array(yi) * P * param.PH/1e5          #in atm
 
         #these are dimensionless fractions
@@ -225,15 +228,15 @@ def init(param):
   N=param.N
 
   for yi in param.ynames:
-    state[yi]=np.ones((param.N,))*np.array(param.feed_yi[param.ynames.index(yi)])
-    #Declare state variables state.yi [value type: numpy array; dimension: n*1] and initialize them with corresponding feed gas fractions of component i: param.feed_yi
+    state[yi]=np.ones((param.N,))*np.array(param.ini_yi[param.ynames.index(yi)])
+    #Declare state variables state.yi [value type: numpy array; dimension: n*1] and initialize them with corresponding feed gas fractions of component i: param.ini_yi
     #e.g.  state{'yA': array([0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2]), 
     #            'yB': array([0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8])}
   
   for xi in param.xnames: # similarily,the "for" loop initialize state.xi for the i_th component
     state[xi]=np.ones((param.N,)) 
   
-  state.P=np.ones((N,))*1e5/param.norm_P0     #Pressure (total gas phase) 1.0=1 ATM
+  state.P=np.ones((N,))*param.PL/param.norm_P0     #Pressure (total gas phase) 1.0=1 ATM
   state.T=np.ones((N,))*param.Ta/param.norm_T0     #Temp of column   # 1.0 = Room Temp (293K)
   C=(state.P[0]*param.norm_P0)/R/(state.T[0]*param.norm_T0)*1e-6  # total conc [mol/cm3]
   cA=C*state.yA[0]
@@ -246,12 +249,6 @@ def init(param):
   
   state.Tw=np.ones((N,))    #Wall temperature
   #states for the product tank
-  if len(state_sizes)<1:
-    #just compute these 1 time (state gets initd twice)
-    for s in state_names:
-      state_sizes.append(state[s].size)
-    print('state_names={}'.format(state_names))
-    print('state_sizes={}'.format(state_sizes))
   return state
 
 def rate_of_change_vel(state,vin=None,vout=None,
@@ -590,7 +587,7 @@ def connections(stateA,stateB,prod,mode,half):
   ret.out_yB=out_yB
   return ret
 
-def compute_vel(data):
+def compute_vel(data,param):
   #compute the velocities from the pressure.  The last one will be wrong
   #because we do not have the Pz0 and PzL pressure here.  But should be close
   #enough for plots - last one is the one that is wrong
@@ -660,29 +657,29 @@ def myfun(t, x):
 
 def oadesmodel(t,x):
   # oadesmodel = ordinary algebraic differential equations model
-  # input: x is a column vector of dimension [ len(state_names)* param.N , 1]
+  # input: x is a column vector of dimension [ len(param.state_names)* param.N , 1]
   # output: dxdt time derivatives of state variables (of the same dimension as the input x)
 
   if param.bed == 1:#equations for single bed simulation
     # defined over 4 operation steps in sequence (i.e. pressurization,adsorption,blowdown,evacuation)
     # you could add in new operation steps by giving self defined boundary conditions and step time duration specified below and in the param.tnewstep in  params.py 
-    state1=x_to_state(x)
+    state1=x_to_state(x, param)
     dstate1= AttrDict() # initialize an empty dictionary that will be storing derivatives of all the state variable
     
     bound=AttrDict() # initialize an empty dictionary that will be storing boundary conditions for different steps
 
-    #set the limit for state variables
-    for yi in param.ynames:
-      state1[yi]=util.limit(state1[yi],0,1)
-    state1.P=util.limit(state1.P,0.01,4)
-    #state1.T=util.limit(state1.T,0.01,1.5)
-    #state1.Tw=util.limit(state1.Tw,0.01,1.5)
+    #set the limit for state variables(would result in oscillative yi profile)
+    #for yi in param.ynames:
+    #  state1[yi]=util.limit(state1[yi],0.000001, 1)
+    #state1.P=util.limit(state1.P,0.2,  4)
+    #state1.T=util.limit(state1.T,0.0001, 1.5)
+    #state1.Tw=util.limit(state1.Tw,0.0001, 1.5)
 
 
     #NOTE: state.any is a arrray with index from 1 to N: [1,2,...N-1,N]
     # other points namely the two boundary points f_0.5 and f_N+0.5 are set by different boundary conditions in each step 
     # other points exceed the boundaries that are f_0 and f_N+1 are calculated using half cell approximation see eq (32)
-    # half cell approximation:
+    # half cell approximation: eq(32)
     # f0 = 2*f0.5-f1
     # fN+1 =2*fN+0.5 -fN
     if 0 <= t <= param.norm_tpre: #pressurization step
@@ -698,7 +695,7 @@ def oadesmodel(t,x):
         bound['{}z0'.format(yi)]=(state1[yi][0]+param.feed_yi[param.ynames.index(yi)]*bound.vz0*dg.Pe*param.deltaZ/2)/(1+bound.vz0*dg.Pe*param.deltaZ/2) # inlet composition is dependent on inlet velocity vz0, which further depends on P1 and P0.5
         bound['{}zL'.format(yi)]= state1[yi][-1]
 
-
+      forwardflow= True   
     if param.norm_tpre < t <= param.norm_tads: # adsorption step
       #Boundary condition at Z=0(denoted Xz0),and Z=L (denoted XzL)
       bound.vz0 = 1 #inlet veloctiy fixed to vfeed
@@ -712,7 +709,7 @@ def oadesmodel(t,x):
         bound['{}z0'.format(yi)]=(state1[yi][0]+param.feed_yi[param.ynames.index(yi)]*bound.vz0*dg.Pe*param.deltaZ/2)/(1+bound.vz0*dg.Pe*param.deltaZ/2) # inlet composition is dependent on inlet velocity vz0, which is a constant now
         bound['{}zL'.format(yi)]= state1[yi][-1]
 
-
+      forwardflow= True   
     if param.norm_tads < t <= param.norm_tblw: # blowdown step
       #Boundary condition at Z=0(denoted Xz0),and Z=L (denoted XzL)
       bound.Pz0 = state1.P[0]   # t(=tao in the reference equation (57)) is already normalized
@@ -721,12 +718,12 @@ def oadesmodel(t,x):
       bound.TzL = state1.T[-1] #same as above
       bound.Twz0 = state1.Tw[0] #same as above
       bound.TwzL = state1.Tw[-1] #same as above
-      bound.vz0 = -2/param.deltaZ*(4/150*param.epst**2)*(param.rp**2)*param.norm_P0/param.mu/param.norm_v0/param.L*(state1.P[0] - bound.Pz0) #inlet veloctiy computed with P1 and P0.5
+      bound.vzL = -2/param.deltaZ*(4/150*param.epst**2)*(param.rp**2)*param.norm_P0/param.mu/param.norm_v0/param.L*(bound.PzL - state1.P[-1]  ) #inlet veloctiy computed with P1 and P0.5
       for yi in param.ynames:
         bound['{}z0'.format(yi)]= state1[yi][0]
         bound['{}zL'.format(yi)]= state1[yi][-1]
 
-        
+      forwardflow= True     
     if param.norm_tblw < t <= param.norm_tend: # evacuation step
       #Boundary condition at Z=0(denoted Xz0),and Z=L (denoted XzL)
       bound.Pz0 = 1/param.norm_P0 *(param.PL + (param.PI-param.PL)*math.exp(-param.lamda_eva* (t-param.norm_tblw) *param.norm_t0))  # t(=tao in the reference equation (57)) is already normalized
@@ -735,22 +732,24 @@ def oadesmodel(t,x):
       bound.TzL = state1.T[-1] #same as above
       bound.Twz0 = state1.Tw[0] #same as above
       bound.TwzL = state1.Tw[-1] #same as above
-      bound.vz0 = -2/param.deltaZ*(4/150*param.epst**2)*(param.rp**2)*param.norm_P0/param.mu/param.norm_v0/param.L*(state1.P[0] - bound.Pz0) #inlet veloctiy computed with P1 and P0.5
+      bound.vz0 = -2/param.deltaZ*(4/150*param.epst**2)*(param.rp**2)*param.norm_P0/param.mu/param.norm_v0/param.L*(state1.P[0] - bound.PzL) #inlet veloctiy computed with P1 and P0.5
       for yi in param.ynames:
         bound['{}z0'.format(yi)]= state1[yi][0]
         bound['{}zL'.format(yi)]= state1[yi][-1]
 
+      forwardflow= False
     elif t > param.norm_tend:
       raise NameError('exceeded the time bound')
   # discretized form of equation (20) -(24) NOTE:engergy balance (23)and(24) is not yet implemented!
-    # generate functions for evaluating j+0.5 and j-0.5 according to param.mode(ignore the flow direction thus always use forward difference)
-    jplus5,jminus5 = difference.gen_j5_functions(param.mode) 
+    # generate functions for evaluating j+0.5 and j-0.5 according to param.mode
+    jplus5,jminus5 = difference.gen_j5_functions(param.mode,forwardflow) 
     # see equation (33)
     vplus5=-1/param.deltaZ*4/150*param.epst**2*param.rp**2*param.norm_P0/param.mu/param.norm_v0/param.L*difference.diffplus(state1.P, bound.PzL)
     vminus5=-1/param.deltaZ*4/150*param.epst**2*param.rp**2*param.norm_P0/param.mu/param.norm_v0/param.L*difference.diffminus(state1.P, bound.Pz0)
 
     # mass transfer rate equation(22), first calculate equilibrium adsorption xistar amount under yi and P ,then compute eq(22)
-    
+
+
     xistar = adsorp_equilibrium_array(np.vstack([state1[yi] for yi in param.ynames]).T, state1['P'], param.isomodel ) # transpose is needed
 
     for xi in param.xnames:
@@ -784,7 +783,7 @@ def oadesmodel(t,x):
 
     
     
-    dstate = np.hstack([dstate1['d{}'.format(item)] for item in state_names]) # adsorbed amount
+    dstate = np.hstack([dstate1['d{}'.format(item)] for item in param.state_names]) # adsorbed amount
     
 
     return dstate
@@ -793,17 +792,16 @@ def oadesmodel(t,x):
     return myfun(t,x)
 
   
-def x_to_state(x):
+def x_to_state(x, param):
   if param.bed == 2:
     state1=AttrDict()
     state2=AttrDict()
     prod=AttrDict()
-    N=param.N
-    q=len(state_names)
+    q=len(param.state_names)
     #print('x_to_state, x size = {}'.format(x.size))
     start=0
     for j,state in enumerate((state1, state2)):
-      for i,name,sz in zip(range(q),state_names,state_sizes):
+      for i,name,sz in zip(range(q),param.state_names,param.state_sizes):
         #print('{} {} size {}'.format(i,name,sz))
         state[name]=x[start:start+sz]
         start+=sz
@@ -816,23 +814,23 @@ def x_to_state(x):
   if param.bed == 1:
     state1=AttrDict()
     start=0
-    for i,name,sz in zip(range(len(state_names)),state_names,state_sizes):
+    for i,name,sz in zip(range(len(param.state_names)),param.state_names,param.state_sizes):
 
       state1[name]=x[start:start+sz]
       start+=sz
     return state1
 
-def data_to_state(x):
+def data_to_state(x,param):
   #convert output of simulation (big matrix) to 2 data variables with attributes
   if param.bed == 2:
     state1=AttrDict()
     state2=AttrDict()
     prod=AttrDict()
     N=param.N
-    q=len(state_names)
+    q=len(param.state_names)
     start=0
     for j,state in enumerate((state1, state2)):
-      for i,name,sz in zip(range(q),state_names,state_sizes):
+      for i,name,sz in zip(range(q),param.state_names,param.state_sizes):
         state[name]=x[start:start+sz,:]
         start+=sz
     #now product tank
@@ -844,7 +842,7 @@ def data_to_state(x):
   if param.bed == 1:
     state1=AttrDict()
     start=0
-    for i,name,sz in zip(range(len(state_names)),state_names,state_sizes):
+    for i,name,sz in zip(range(len(param.state_names)),param.state_names,param.state_sizes):
 
       state1[name]=x[start:start+sz,:]
       start+=sz
@@ -872,7 +870,7 @@ def product_flow_rate(P):
   return f*1000   # LPM
   
 def print_state_ranges(data):
-  for n in state_names:
+  for n in param.state_names:
     print('{:6}: {:8.2f} - {:8.2f}'.format(n,np.min(data[n]),np.max(data[n])))
 
 ####
@@ -1088,18 +1086,66 @@ def simulate_singlebed(params_file='params',output_dir='./outcome'):
   param = paramsmodule.create_param(None)  # set parameters
   dg = create_dgroups(param) # compute constant groups in model equations, if energy balances are computed, so that some of the groups no longer remain constant it would be better to throw this process into the model funtion
   x0_all= init(param)
-  x0 = np.hstack([x0_all[item]  for item in state_names]) # initialization state variables e.g. for a two component mixture it would be ['P','T','Tw', 'xA','xB','yA','yB']
+  x0 = np.hstack([x0_all[item]  for item in param.state_names]) # initialization state variables e.g. for a two component mixture it would be ['P','T','Tw', 'xA','xB','yA','yB']
   ev=np.arange(0,param.norm_tend, param.tstep) # set the intergration time span with a given uniform time step
   
   #integrate the odae functions oadesmodel (discretized using finite volume method)
   bunch=scipy.integrate.solve_ivp(oadesmodel, (0, param.norm_tend), x0, vectorized=False, t_eval=ev,
-                                  method='BDF')
+                                  method='LSODA')
   #CORE FUNCTION
   #END
 
 
   #data post prossesing, mainly data storage and drawing plots
+  plot_data(bunch, param, output_dir)
 
+
+  return 0
+
+def cyclic_steady_state(params_file='params',output_dir='./outcome', maxcycle = 100, tolerance = 1e-4):
+  paramsmodule=importlib.import_module(params_file)
+  #CORE FUNCTION
+  #START
+  global param
+  global dg
+  status =AttrDict()
+  status.snap = AttrDict()
+  param = paramsmodule.create_param(None)  # set parameters
+  dg = create_dgroups(param) # compute constant groups in model equations, if energy balances are computed, so that some of the groups no longer remain constant it would be better to throw this process into the model funtion 
+  
+  
+   # number of max iterations
+  for cycle in range(maxcycle):
+
+    if cycle == 0:  
+      x0_all= init(param)
+      x0 = np.hstack([x0_all[item]  for item in param.state_names]) # initialization state variables e.g. for a two component mixture it would be ['P','T','Tw', 'xA','xB','yA','yB']
+    else:
+      x0 = xend
+
+    ev=np.arange(0,param.norm_tend, param.tstep) # set the intergration time span with a given uniform time step
+  
+    #integrate the odae functions oadesmodel (discretized using finite volume method)
+    bunch =scipy.integrate.solve_ivp(oadesmodel, (0, param.norm_tend), x0, vectorized=False, t_eval=ev,
+                                  method='LSODA')
+    
+    x0= bunch.y[:,0] 
+    xend = bunch.y[:,-1]
+    tol= tolerance * np.ones_like(x0) #iteration tolerance default 1e-4
+
+    status.snap[cycle] = bunch #pack all the data produced by the scipy ode solver in nth cycle into the status AttrDict, which will be used later for plotting
+    print('current cylce {}'.format(cycle))
+    if (np.abs(xend - x0) <= tol).all() : # the css condition whether the difference of state varibales between the beginning of a cylce and the end of a cycle is less than the set tolerance
+      status.cycle = cycle
+      status.converged = True
+      print('Converged in the {} cylce'.format(cycle))
+      return bunch, status
+    elif (cycle +1) == maxcycle:
+      status.cycle = cycle
+      status.converged = False
+      return bunch, status
+
+def plot_data(bunch, param, output_dir):  
   if output_dir is None:
     dbg=mylog.Log(outdir=None,descr='psa')
     OUTDIR='./'
@@ -1109,26 +1155,24 @@ def simulate_singlebed(params_file='params',output_dir='./outcome'):
   #change the print function in the module to print to the log file
   fileprint=dbg.print
 
-  np.set_printoptions(threshold = 2000)
+
   data=AttrDict()
-  data.data1=data_to_state(bunch.y)
-  print(data.data1)
-  print(type(bunch.y))
+  data.data1=data_to_state(bunch.y,param)
+  print(np.shape(bunch.y))
+  #print(np.shape(bunch.y))
   data.data1.t = bunch.t
   data.data1.param = param
   fileprint('time :{}'.format(bunch.t))
   fileprint('parameters: {}'.format(param))
-  for item in state_names:
+  for item in param.state_names:
     fileprint('State variable {}: {}'.format(item, data.data1[item]))
 
-  data.data1.v=compute_vel(data.data1) #it seems that we need to pass the entire data dictionary instead of just P, I dont understand
+  data.data1.v = compute_vel(data.data1, param) #it seems that we need to pass the entire data dictionary instead of just P, I dont understand
   fileprint('State variable velocity: {}'.format(item, data.data1['v']))
 
   plots.plot_singlebed(data)
-
-  return 0
-
-
+  return 0  
+    
 
 
   
