@@ -63,11 +63,11 @@ def create_param(mods, print=print):
   param.feed_yi=[0.1,0.8, 0.1] #feed gas fraction of component i
   param.ini_yi = [0.1, 0.8, 0.1] # gas composition used for initialization state variables yi before calling the odes solver
   param.isomodel='Langmuir-Freundlich' # types of isotherm model (curruntly available:'Langmuir-Freundlich'; )
-  param.bi=[0.0086, 0.25, 0.0086]   # [1/bar] @ Room temp
-  param.qsi=[3.09, 5.84, 3.09]  #saturation constant for component i  [mol/kg]=[mmol/g] (at infinite pressure)
-  param.qs0 = 5.84 #[mol/kg]
+  param.bi=[3.499,2.701, 7.185]   # [1/bar] @ Room temp
+  param.qsi=[6.29, 4.59, 4.94]  #saturation constant for component i  [mol/kg]=[mmol/g] (at infinite pressure)
+  param.qs0 = 6.29 #[mol/kg]
   param.ni=[1.00, 1.00, 1.00]     #exponent on bar pressure of component i (note: not 1/ni)
-  param.ki=[0.620, 0.197, 0.620]    #mass transfer coefficient
+  param.ki=[0.6, 0.6, 0.6]    #mass transfer coefficient assumend equall
   #not doing Temp and Tw simulation at the moment
   param.Hi=[0, 0, 0]                    #heat of adsorption of component i  [J/mol]
 

@@ -27,6 +27,7 @@ from numpy import concatenate
 from numpy import zeros_like
 from numpy import column_stack
 from numpy import hstack
+import numpy
 import scipy
 import scipy.integrate
 import matplotlib
@@ -718,13 +719,14 @@ def oadesmodel(t,x):
       bound.TzL = state1.T[-1] #same as above
       bound.Twz0 = state1.Tw[0] #same as above
       bound.TwzL = state1.Tw[-1] #same as above
-      bound.vzL = -2/param.deltaZ*(4/150*param.epst**2)*(param.rp**2)*param.norm_P0/param.mu/param.norm_v0/param.L*(bound.PzL - state1.P[-1]  ) #inlet veloctiy computed with P1 and P0.5
+      bound.vzL = -2/param.deltaZ*(4/150*param.epst**2)*(param.rp**2)*param.norm_P0/param.mu/param.norm_v0/param.L*(bound.PzL - state1.P[-1]  )
       for yi in param.ynames:
         bound['{}z0'.format(yi)]= state1[yi][0]
         bound['{}zL'.format(yi)]= state1[yi][-1]
 
       forwardflow= True     
     if param.norm_tblw < t <= param.norm_tend: # evacuation step
+      #this step is a backward flow,  if you modify the flow direction, don't forget to modify the function which computes purity and recovery, especially mole_out,i_evac = f( s_0.5 ), s=v,y,P,T, since now the outlet is at z=0
       #Boundary condition at Z=0(denoted Xz0),and Z=L (denoted XzL)
       bound.Pz0 = 1/param.norm_P0 *(param.PL + (param.PI-param.PL)*math.exp(-param.lamda_eva* (t-param.norm_tblw) *param.norm_t0))  # t(=tao in the reference equation (57)) is already normalized
       bound.PzL = state1.P[-1] # lhs:  Pzl=P_N+0.5, rhs: state.P[-1] = P_N
@@ -732,7 +734,7 @@ def oadesmodel(t,x):
       bound.TzL = state1.T[-1] #same as above
       bound.Twz0 = state1.Tw[0] #same as above
       bound.TwzL = state1.Tw[-1] #same as above
-      bound.vz0 = -2/param.deltaZ*(4/150*param.epst**2)*(param.rp**2)*param.norm_P0/param.mu/param.norm_v0/param.L*(state1.P[0] - bound.PzL) #inlet veloctiy computed with P1 and P0.5
+      bound.vz0 = -2/param.deltaZ*(4/150*param.epst**2)*(param.rp**2)*param.norm_P0/param.mu/param.norm_v0/param.L*(state1.P[0] - bound.Pz0) #inlet veloctiy computed with P1 and P0.5
       for yi in param.ynames:
         bound['{}z0'.format(yi)]= state1[yi][0]
         bound['{}zL'.format(yi)]= state1[yi][-1]
@@ -821,7 +823,18 @@ def x_to_state(x, param):
     return state1
 
 def data_to_state(x,param):
-  #convert output of simulation (big matrix) to 2 data variables with attributes
+  # convert output of simulation (big matrix) to 2 data variables with attributes
+  # input: x : 
+  #                         [P0,P1,...PN,T0,T1,...TN,Tw0,Tw1, ...,TwN,xA0,..xAN,xB0,..xBN,yA0,...yAN,yB0,...,yBN].transpose, 
+  #                         where every variables(P0,P1,..., PN, T0....) is a row vector of dimension param.N,
+  #                         the total dimension is [3+2*param.nocomponents, param.N]
+  # output: state1:
+  #                        state1.P = [P0,P1,...,PN].T
+  #                        state1.T = [T0,T1,...,TN].T
+  #                        ...
+  #                        state1.xB =[xB0,xB1,...,xBN].T
+  #                        ...
+  ## convert bunch.y back to a dictionary, where state variables such as P, T, Tw, yi, and xi can be aceessed by state1.[state_varibale's name]
   if param.bed == 2:
     state1=AttrDict()
     state2=AttrDict()
@@ -848,8 +861,6 @@ def data_to_state(x,param):
       start+=sz
     return state1
 
-
-
 def print_state(state):
   print('P:{}'.format(state.P))
   print('T:{}'.format(state.T))
@@ -858,7 +869,6 @@ def print_state(state):
     print('{}:{}'.format(xi,state[xi]))
   for yi in param.xnames:
     print('{}:{}'.format(yi,state[yi]))
-
 
 def product_flow_rate(P):
   #given an array of product pressures, compute the corresponding output flow rates
@@ -1087,7 +1097,7 @@ def simulate_singlebed(params_file='params',output_dir='./outcome'):
   dg = create_dgroups(param) # compute constant groups in model equations, if energy balances are computed, so that some of the groups no longer remain constant it would be better to throw this process into the model funtion
   x0_all= init(param)
   x0 = np.hstack([x0_all[item]  for item in param.state_names]) # initialization state variables e.g. for a two component mixture it would be ['P','T','Tw', 'xA','xB','yA','yB']
-  ev=np.arange(0,param.norm_tend, param.tstep) # set the intergration time span with a given uniform time step
+  ev=np.linspace(0,param.norm_tend,param.tN) # set the intergration time span with a given uniform time step
   
   #integrate the odae functions oadesmodel (discretized using finite volume method)
   bunch=scipy.integrate.solve_ivp(oadesmodel, (0, param.norm_tend), x0, vectorized=False, t_eval=ev,
@@ -1103,6 +1113,13 @@ def simulate_singlebed(params_file='params',output_dir='./outcome'):
   return 0
 
 def cyclic_steady_state(params_file='params',output_dir='./outcome', maxcycle = 100, tolerance = 1e-4):
+  # this function simulate mutiple psa process until cyclic steady state is reached, and store the data generated during simulation
+  # return: "status" variable has the following data structure, type(status): AttriDict 
+  #          
+  #          status.param: "params used in simulation" [type: AttriDict ] e.g. status.param.nocomponents = 3 (corresponds to what you've set in the params_file)
+  #          status.snap: "snapshot at each cycle" [type: list] e.g. status.snap[]
+  # 
+  
   paramsmodule=importlib.import_module(params_file)
   #CORE FUNCTION
   #START
@@ -1111,6 +1128,7 @@ def cyclic_steady_state(params_file='params',output_dir='./outcome', maxcycle = 
   status =AttrDict()
   status.snap = AttrDict()
   param = paramsmodule.create_param(None)  # set parameters
+  status.param = param # bind the particular param file to the output status,this would be convenient when we process the data after simuation for ploting by loading pickles
   dg = create_dgroups(param) # compute constant groups in model equations, if energy balances are computed, so that some of the groups no longer remain constant it would be better to throw this process into the model funtion 
   
   
@@ -1123,7 +1141,7 @@ def cyclic_steady_state(params_file='params',output_dir='./outcome', maxcycle = 
     else:
       x0 = xend
 
-    ev=np.arange(0,param.norm_tend, param.tstep) # set the intergration time span with a given uniform time step
+    ev=np.linspace(0,param.norm_tend,param.tN) # set the intergration time span with a given uniform time step
   
     #integrate the odae functions oadesmodel (discretized using finite volume method)
     bunch =scipy.integrate.solve_ivp(oadesmodel, (0, param.norm_tend), x0, vectorized=False, t_eval=ev,
@@ -1136,7 +1154,7 @@ def cyclic_steady_state(params_file='params',output_dir='./outcome', maxcycle = 
     status.snap[cycle] = bunch #pack all the data produced by the scipy ode solver in nth cycle into the status AttrDict, which will be used later for plotting
     print('current cylce {}'.format(cycle))
     if (np.abs(xend - x0) <= tol).all() : # the css condition whether the difference of state varibales between the beginning of a cylce and the end of a cycle is less than the set tolerance
-      status.cycle = cycle
+      status.cycle = cycle # status.cycle is the "final" converged cycle number -1, because python's count starts at 0
       status.converged = True
       print('Converged in the {} cylce'.format(cycle))
       return bunch, status
@@ -1145,7 +1163,8 @@ def cyclic_steady_state(params_file='params',output_dir='./outcome', maxcycle = 
       status.converged = False
       return bunch, status
 
-def plot_data(bunch, param, output_dir):  
+def plot_data(bunch, param, output_dir): 
+  # record data and plot
   if output_dir is None:
     dbg=mylog.Log(outdir=None,descr='psa')
     OUTDIR='./'
@@ -1173,10 +1192,89 @@ def plot_data(bunch, param, output_dir):
   plots.plot_singlebed(data)
   return 0  
     
+def purity_recovery(bunch,param):
+  # calculate the purity of the product stream for a 4-step psa process with boundary conditions set the same as in the oadesmodel function
+  # input : bunch is a standard ode output
+  # return: obj type:[AttrDict]
+  #             datastructure: obj['purity_ads'][yi], obj['purity_blw'][yi], obj['purity_eva'][yi], obj[recovery][yi]
+  mole= AttrDict()
+  mole['z0_tpre']=AttrDict()
+  mole['z0_tads']=AttrDict()
+  mole['zL_tads']=AttrDict()
+  mole['zL_tblw']=AttrDict()
+  mole['z0_teva']=AttrDict()
 
-
+  obj=AttrDict()
+  obj['purity_ads']=AttrDict()
+  obj['purity_blw']=AttrDict()
+  obj['purity_eva']=AttrDict()
+  obj['recovery']=AttrDict()
   
   
+
+
+  #bunch.t == np.linspace(0,param.norm_tend,param.tN)#bunch.t
+  data = data_to_state(bunch.y,param) # convert bunch.y back to a dictionary, where state variables such as P, T, Tw, yi, and xi can be aceessed by data.[state_varibale's name][z,t]
+  gnorm = param.norm_P0 * param.norm_v0 * param.epsilon *param.area /param.R /param.norm_T0 #normalized constant group
+  dg = create_dgroups(param)
+  for yi in param.ynames:
+    # pressurization step 
+    # z=0
+    t_pre=bunch.t[0:param.index_tpre]
+    pre_Pz0= 1/param.norm_P0 *(param.PH - (param.PH-param.PL)*np.exp(-param.lamda_pre* t_pre *param.norm_t0)) 
+    pre_vz0= -2/param.deltaZ*(4/150*param.epst**2)*(param.rp**2)*param.norm_P0/param.mu/param.norm_v0/param.L*(data.P[0, 0:param.index_tpre] - pre_Pz0)
+    pre_Tz0= data.T[0,0:param.index_tpre]
+    #integration using Simpson's Rule
+    mole['z0_tpre'][yi] = gnorm * scipy.integrate.simpson(data[yi][0,0:param.index_tpre] *pre_vz0* pre_Pz0 / pre_Tz0, t_pre)
     
+    # adsorption step
+    # z=0
+    t_ads=bunch.t[param.index_tpre+1:param.index_tads]
+    ads_vz0 = param.vfeed/param.norm_v0 * np.ones_like(t_ads)
+    ads_Pz0 = data.P[0,param.index_tpre+1:param.index_tads] + ads_vz0 * param.deltaZ* param.mu *param.norm_v0 *param.L /(2*4/150 * param.epst**2 * param.rp**2 *param.norm_P0)
+    ads_Tz0 = data.T[0,param.index_tpre+1:param.index_tads]
+
+    # z=L
+    ads_PzL = param.PH/param.norm_P0 * np.ones_like(t_ads) # outlet pressure in the adsorption is set to operating at PH
+    ads_TzL = data.T[-1,param.index_tpre+1:param.index_tads]
+    ads_vzL = -2/param.deltaZ*(4/150*param.epst**2)*(param.rp**2)*param.norm_P0/param.mu/param.norm_v0/param.L*(ads_PzL - data.P[-1,param.index_tpre+1:param.index_tads]  )
+    #integration using Simpson's Rule
+    mole['z0_tads'][yi] = gnorm * scipy.integrate.simpson((data[yi][0,param.index_tpre+1:param.index_tads]+param.feed_yi[param.ynames.index(yi)]*ads_vz0*dg.Pe*param.deltaZ/2)/(1+ads_vz0*dg.Pe*param.deltaZ/2) *ads_vz0* ads_Pz0 / ads_Tz0, t_ads) 
+    mole['zL_tads'][yi]=  gnorm * scipy.integrate.simpson(data[yi][-1,param.index_tpre+1:param.index_tads] *ads_vzL* ads_PzL / ads_TzL, t_ads)
+    
+    #depressurization step
+    # z=L
+    t_blw=bunch.t[param.index_tads+1:param.index_tblw]
+    blw_PzL = 1/param.norm_P0 *(param.PI + (param.PH-param.PI)*np.exp(-param.lamda_blw* (t_blw-param.norm_tads) *param.norm_t0))# lhs:  Pzl=P_N+0.5, rhs: state.P[-1] = P_N
+    blw_TzL = data.T[-1, param.index_tads+1:param.index_tblw]
+    blw_vzL = -2/param.deltaZ*(4/150*param.epst**2)*(param.rp**2)*param.norm_P0/param.mu/param.norm_v0/param.L*(blw_PzL - data.P[-1, param.index_tads+1:param.index_tblw]  )
+    mole['zL_tblw'][yi]= gnorm * scipy.integrate.simpson(data[yi][-1, param.index_tads+1:param.index_tblw] *blw_vzL* blw_PzL / blw_TzL, t_blw)
+
+    #evacuation step
+    # z=0
+    assert (param.index_tend == len(bunch.t)-1)
+    t_eva=bunch.t[param.index_tblw+1:param.index_tend]
+    eva_Pz0 = 1/param.norm_P0 *(param.PL + (param.PI-param.PL)*np.exp(-param.lamda_eva* (t_eva-param.norm_tblw) *param.norm_t0))  # t(=tao in the reference equation (57)) is already normalized
+
+    eva_Tz0 = data.T[0, param.index_tblw+1:param.index_tend] # dummy boundary conditions, engergy balances are not actually computed
+    eva_vz0 = -2/param.deltaZ*(4/150*param.epst**2)*(param.rp**2)*param.norm_P0/param.mu/param.norm_v0/param.L*(data.P[0, param.index_tblw+1:param.index_tend] - eva_Pz0) #inlet veloctiy computed with P1 and P0.5
+    assert((eva_vz0 <= 0).all()) #check if all the velocity is negative, if so apply abs to eva_vz0, because we need a postive number for molar amount
+    eva_vz0= np.abs(eva_vz0)
+    mole['z0_teva'][yi]= gnorm * scipy.integrate.simpson(data[yi][0, param.index_tblw+1:param.index_tend] *eva_vz0* eva_Pz0 / eva_Tz0, t_eva)
+
+  #now we can compute purity and recovery using eq(60) andeq(61)
+  for yi in param.ynames:
+    obj['purity_eva'][yi] = mole['z0_teva'][yi]/ np.sum([mole['z0_teva'][yi] for yi in param.ynames])
+    obj['purity_ads'][yi] = mole['zL_tads'][yi]/ np.sum([mole['zL_tads'][yi] for yi in param.ynames])
+    obj['purity_blw'][yi] = mole['zL_tblw'][yi]/ np.sum([mole['zL_tblw'][yi] for yi in param.ynames])
+    for where in param.collect:
+      obj['recovery'][yi] = mole['{}'.format(param.collect[param.ynames.index(yi)])][yi] /np.sum([mole['z0_tads'][yi] , mole['z0_tpre'][yi]])
+
+   
+  return obj
+
+def save_to_pickle():
+  pass
+  
   
 

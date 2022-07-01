@@ -55,21 +55,22 @@ def create_param(mods, print=print):
   #Physical constants
   param.R=8.314     #J/mol-K
   #Component related parameters
-  param.nocomponents = 2 # number of components
+  param.nocomponents = 3 # number of components
   param.xnames, param.ynames = compnames(param.nocomponents)
   param.state_names=['P','T','Tw'] + param.xnames + param.ynames
   param.state_sizes=[] # will be filled in when we do init()
 
-  param.feed_yi=[0.2,0.8] #feed gas fraction of component i
-  param.ini_yi = [0.2, 0.8] # gas composition used for initialization state variables yi before calling the odes solver
+  param.feed_yi=[0.05, 0.9, 0.05] #feed gas fraction of component i
+  param.ini_yi = [0.1, 0.8, 0.1] # gas composition used for initialization state variables yi before calling the odes solver
+  param.collect = ['zL_tads','z0_teva','zL_tblw'] # where each component is collected, following the format "z+[0/L](z=0/z=L)+_t[pre/ads/blw/eva](three letter code indicating each step)"
   param.isomodel='Langmuir-Freundlich' # types of isotherm model (curruntly available:'Langmuir-Freundlich'; )
-  param.bi=[0.0086, 0.25]   # [1/bar] @ Room temp
-  param.qsi=[3.09,5.84]  #saturation constant for component i  [mol/kg]=[mmol/g] (at infinite pressure)
+  param.bi=[0.0086, 0.25, 0.0086]   # [1/bar] @ Room temp
+  param.qsi=[3.09,5.84, 3.09]  #saturation constant for component i  [mol/kg]=[mmol/g] (at infinite pressure)
   param.qs0 = 5.84 #[mol/kg]
-  param.ni=[1.00, 1.00]     #exponent on bar pressure of component i (note: not 1/ni)
-  param.ki=[0.620, 0.197]    #mass transfer coefficient
+  param.ni=[1.00, 1.00, 1.00]     #exponent on bar pressure of component i (note: not 1/ni)
+  param.ki=[0.620, 0.620, 0.620]    #mass transfer coefficient
   #not doing Temp and Tw simulation at the moment
-  param.Hi=[0,0]                    #heat of adsorption of component i  [J/mol]
+  param.Hi=[0, 0, 0]                    #heat of adsorption of component i  [J/mol]
 
   #Simulation parameters
   #the mode for the difference scheme
@@ -81,15 +82,15 @@ def create_param(mods, print=print):
   #print('param.state_names={}'.format(param.state_names))
   #print('param.state_sizes={}'.format(param.state_sizes))
   #tstep will be increased if cycle_time is long (no more than 100 steps per cycle)
-  param.tstep=1      #time step for ODE (dimensionless)
-  param.adsorb=True    #set to True to have adsorption happen
+  param.tN= 101 # number of sampling points over the entire cycle time span (*both ends of the line segement are included; starts from 0; must be an integer greater or equal than 2)
+  #param.adsorb=True    #set to True to have adsorption happen
   #cycle_time, vent_time
   #param.cycle_time=36       #time for a half-cycle in dimensionless time units
   #param.vent_time=23.04        #from beginning of cycle in dimensionless time units
   #Physical system parameters
   param.Ta=20+273.15    #room temperature in K
   #Approximate Inviracare XL cylinders
-  param.D=0.083     #Diameter of cylinder [m]
+  param.D=0.30     #Diameter of cylinder [m]
   param.L=1      #Length of cylinder (m)  - 13"
   #Soda Bottle 2L
   #param.D=0.10     #Diameter of cylinder [m]
@@ -110,6 +111,7 @@ def create_param(mods, print=print):
   param.blowdown_orifice=2.80     # dia mm
   param.vent_orifice=1.0        # dia mm
   param.feed_pressure=1        #pressure in bar (1e5 Pa), absolute
+  param.vfeed = 1 # intersitial feed velocity [m/s]
   param.PI= 0.5*1e5   # intermediate pressure in Pa                
   param.PL=0.25*1e5 # low pressure in Pa
   param.PH=param.feed_pressure*1e5   #Pa, will be the normalization pressure
@@ -193,7 +195,7 @@ def create_param(mods, print=print):
   #in_flow=orifice.orifice_flow2(param.feed_pressure*1e5/1000,100,param.input_orifice,T=param.Ta)/60
   #in_vel=in_flow/param.area    # [m/s]
   #param.norm_v0=in_vel  # [m/s]  feed velocity, which varies
-  param.vfeed = 1 # intersitial feed velocity [m/s]
+
   param.norm_v0=param.vfeed
   param.norm_t0=param.L/param.norm_v0   # so t=time/norm.t0
   param.norm_P0=param.PH
@@ -216,6 +218,13 @@ def create_param(mods, print=print):
   param.norm_tads = (param.tpre +param.tads) / param.norm_t0
   param.norm_tblw = (param.tpre +param.tads + param.tblw) / param.norm_t0
   param.norm_tend = (param.tpre+ param.tads + param.tblw + param.teva) / param.norm_t0
+  param.tstep = param.norm_tend/(param.tN-1)      #time step for ODE (dimensionless), -1 because the number of intervals = number of points(of a line segement including both ends) - 1,NOTE: Careful, avoid using arange,because when time step is not an integer,the rightmost time point is not included!
+
+  # the index of descritized time varaible at the end of each step  
+  param.index_tpre = math.floor(param.norm_tpre/param.tstep)
+  param.index_tads = math.floor(param.norm_tads/param.tstep)
+  param.index_tblw = math.floor(param.norm_tblw/param.tstep)
+  param.index_tend = math.floor(param.norm_tend/param.tstep)
 
   #NOTE: norm.v0 is computed after this, will be set to param.v0
   #Axial dispersion coefficient m2/sec

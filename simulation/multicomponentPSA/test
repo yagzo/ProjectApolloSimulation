@@ -2,13 +2,15 @@
 
 from cgi import test
 from pydoc import importfile
-from params_ternary import create_param
+from xml.dom.minidom import Attr
+#from params_ternary import create_param
 from onebedmulticomponent import adsorp_equilibrium, cyclic_steady_state, plot_data
 from onebedmulticomponent import adsorp_equilibrium_array
 from onebedmulticomponent import create_norm
 from onebedmulticomponent import compute_alpha
 from onebedmulticomponent import plot_data
 from onebedmulticomponent import cyclic_steady_state
+from onebedmulticomponent import purity_recovery
 import numpy as np
 from onebedmulticomponent import AttrDict
 from onebedmulticomponent import simulate_singlebed
@@ -31,21 +33,27 @@ import pickle
 #print(dminus)
 
 
-bunch, status = cyclic_steady_state(params_file='params_ternary')
-with open('statusdata_ternary.pickle', 'wb') as f:
+bunch, status = cyclic_steady_state(params_file='params')
+with open('statusdata.pickle', 'wb') as f:
 #    # Pickle the 'data' dictionary using the highest protocol available.
     pickle.dump(status, f, pickle.HIGHEST_PROTOCOL)
 
-with open('statusdata_ternary.pickle', 'rb') as f:
+with open('statusdata.pickle', 'rb') as f:
     # The protocol version used is detected automatically, so we do not
     # have to specify it.
     status = pickle.load(f)
 
-bunch = status.snap[1]
-param = create_param(None)
-plot_data(bunch, param ,'./outcome')
+bunch = status.snap[status.cycle]
+#print(bunch.t, np.shape(bunch.t))
+#print(status.param)
+#param = create_param(None)
+#plot_data(bunch, param ,'./outcome')
 
 
+
+##test integral  of discrete variable over given time span###
+mole =purity_recovery(bunch,status.param)
+print(mole)
 
 
 
