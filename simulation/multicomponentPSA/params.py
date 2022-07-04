@@ -56,10 +56,6 @@ def create_param(mods, print=print):
   param.R=8.314     #J/mol-K
   #Component related parameters
   param.nocomponents = 3 # number of components
-  param.xnames, param.ynames = compnames(param.nocomponents)
-  param.state_names=['P','T','Tw'] + param.xnames + param.ynames
-  param.state_sizes=[] # will be filled in when we do init()
-
   param.feed_yi=[0.05, 0.9, 0.05] #feed gas fraction of component i
   param.ini_yi = [0.1, 0.8, 0.1] # gas composition used for initialization state variables yi before calling the odes solver
   param.collect = ['zL_tads','z0_teva','zL_tblw'] # where each component is collected, following the format "z+[0/L](z=0/z=L)+_t[pre/ads/blw/eva](three letter code indicating each step)"
@@ -72,52 +68,60 @@ def create_param(mods, print=print):
   #not doing Temp and Tw simulation at the moment
   param.Hi=[0, 0, 0]                    #heat of adsorption of component i  [J/mol]
 
+  
+
+
   #Simulation parameters
   #the mode for the difference scheme
   param.mode=1 #differencing scheme 1: forward difference； 2：vanleer； 4：weno 
   param.bed=1 #number of operating beds, its value must be either 1 or 2
   param.N=20  #discretization steps in spatial direction
-  for s in param.state_names:
-    param.state_sizes.append(param.N)
-  #print('param.state_names={}'.format(param.state_names))
-  #print('param.state_sizes={}'.format(param.state_sizes))
-  #tstep will be increased if cycle_time is long (no more than 100 steps per cycle)
   param.tN= 101 # number of sampling points over the entire cycle time span (*both ends of the line segement are included; starts from 0; must be an integer greater or equal than 2)
   #param.adsorb=True    #set to True to have adsorption happen
   #cycle_time, vent_time
   #param.cycle_time=36       #time for a half-cycle in dimensionless time units
   #param.vent_time=23.04        #from beginning of cycle in dimensionless time units
   #Physical system parameters
-  param.Ta=20+273.15    #room temperature in K
+  param.Ta=298    #room temperature in K
   #Approximate Inviracare XL cylinders
   param.D=0.30     #Diameter of cylinder [m]
   param.L=1      #Length of cylinder (m)  - 13"
   #Soda Bottle 2L
   #param.D=0.10     #Diameter of cylinder [m]
   #param.L=0.33      #Length of cylinder (m)  - 13"
-  param.product_tank_volume=2.0/1000     # 2L in m3
+  #param.product_tank_volume=2.0/1000     # 2L in m3
   #we set an orifice so that we can 5LPM at a certain pressure (3bar abs) and
   #try to get an output pressure sits around that 3 bar.
   #param.epsilon=0.36  # void fraction (fraction of space filled with gas vs. spheres)
   param.epsilon=0.37
-  param.epsilonp=0.35    #particle voidage
+  #param.epsilonp=0.35    #particle voidage
   param.rp=0.7e-3          #particle radius [m]
-  param.tauprime=3.0     # tortuosity
+  #param.tauprime=3.0     # tortuosity
   #flow params
-  param.input_orifice=2.2     # dia mm - pressure feed
-  param.output_orifice=1.40    # dia mm - to output tank
+  #param.input_orifice=2.2     # dia mm - pressure feed
+  #param.output_orifice=1.40    # dia mm - to output tank
   #we use an orifice that will provide 5LPM at 3 bar abs product tank
-  param.product_orifice=0.475   # dia mm - output from product tank to patient
-  param.blowdown_orifice=2.80     # dia mm
-  param.vent_orifice=1.0        # dia mm
-  param.feed_pressure=1        #pressure in bar (1e5 Pa), absolute
+  #param.product_orifice=0.475   # dia mm - output from product tank to patient
+  #param.blowdown_orifice=2.80     # dia mm
+  #param.vent_orifice=1.0        # dia mm
+  param.feed_pressure = 1        #pressure in bar (1e5 Pa), absolute #this is also set as the highest pressure
   param.vfeed = 1 # intersitial feed velocity [m/s]
+
   param.PI= 0.5*1e5   # intermediate pressure in Pa                
   param.PL=0.25*1e5 # low pressure in Pa
-  param.PH=param.feed_pressure*1e5   #Pa, will be the normalization pressure
+ 
+  
+  #parameters used in setting boundary conditions for 4 operating steps 
+  param.lamda_pre=0.5 # [s-1] pressurization profile parameter
+  param.lamda_blw=0.5 # [s-1] blowdown pressure profile parameter
+  param.lamda_eva=0.5 # [s-1] evacuation pressure profile parameter
+  param.tpre = 15 # [s] pressurization duration time
+  param.tads = 15 # [s] adsorption duration time
+  param.tblw = 30 # [s] blowdown duration time
+  param.teva = 40 # [s] evacuation duration time
 
   
-  param.product_pressure=2     # bar in output product tank (not used)
+  #param.product_pressure=2     # bar in output product tank (not used)
   #Note: random sphere packing is 64%, densest is 74%, void fractions=.36, .26
   #param.DL=1.0        #Axial dispersion coefficient (m2/s)
   #Mol wt O=16, N=14
@@ -169,6 +173,7 @@ def create_param(mods, print=print):
   param.hout=2.5     #outside heat transfer coeff
   param.R=8.314      #Gas constant  [m3Pa/mol/K]
   param.eta=.72      #compression/evacuation efficiency
+  param.DL=4.9e-4  # m2/sec from another paper
 
 
   #####
@@ -181,6 +186,21 @@ def create_param(mods, print=print):
     
   #####
   #Things we have to calculate, need to do this after the overriding
+  #check the input parameters to see if they are consitant, e.g. for a ternary mix
+  assert len(param.feed_yi) == param.nocomponents
+  assert len(param.ini_yi) == param.nocomponents
+  assert len(param.bi) == param.nocomponents
+  assert len(param.qsi) == param.nocomponents
+  assert len(param.ni) == param.nocomponents
+  assert len(param.ki) == param.nocomponents
+  assert len(param.Hi) == param.nocomponents
+
+  #setup component names for xi, yi
+  param.xnames, param.ynames = compnames(param.nocomponents)
+  param.state_names=['P','T','Tw'] + param.xnames + param.ynames
+  param.state_sizes=[] # will be filled in when we do init()
+  for s in param.state_names:
+    param.state_sizes.append(param.N)
   param.area=(param.D/2)**2*math.pi     #[m2]
   param.volume=param.area*param.L
   #print('canister volume is {} L'.format(param.volume*1000))
@@ -196,24 +216,19 @@ def create_param(mods, print=print):
   #in_vel=in_flow/param.area    # [m/s]
   #param.norm_v0=in_vel  # [m/s]  feed velocity, which varies
 
+  #reference value of the statevaribales for normalization
+  param.PH=param.feed_pressure*1e5   #Pa, will be the normalization pressure
   param.norm_v0=param.vfeed
   param.norm_t0=param.L/param.norm_v0   # so t=time/norm.t0
   param.norm_P0=param.PH
-  param.norm_T0=293 # [K] temperature 
+  param.norm_T0=298 # [K] temperature
   assert sum(param.feed_yi) == 1 and len(param.feed_yi) == param.nocomponents
   #molecular weight of air is 29 g/mol or 29e-03 kg/mol
-  param.rho_g=100000/param.R/param.Ta*29e-3   # Needs to be adjusted for pressure/Temp
+  #param.rho_g=100000/param.R/param.Ta*29e-3   # Needs to be adjusted for pressure/Temp
   
-  param.Dp=param.Dm/param.tauprime
+  #param.Dp=param.Dm/param.tauprime
 
-  #parameters used in setting boundary conditions for 4 operating steps 
-  param.lamda_pre=0.5 # [s-1] pressurization profile parameter
-  param.lamda_blw=0.5 # [s-1] blowdown pressure profile parameter
-  param.lamda_eva=0.5 # [s-1] evacuation pressure profile parameter
-  param.tpre = 15 # [s] pressurization duration time
-  param.tads = 15 # [s] adsorption duration time
-  param.tblw = 30 # [s] blowdown duration time
-  param.teva = 40 # [s] evacuation duration time
+
   param.norm_tpre = param.tpre / param.norm_t0
   param.norm_tads = (param.tpre +param.tads) / param.norm_t0
   param.norm_tblw = (param.tpre +param.tads + param.tblw) / param.norm_t0
@@ -229,7 +244,7 @@ def create_param(mods, print=print):
   #NOTE: norm.v0 is computed after this, will be set to param.v0
   #Axial dispersion coefficient m2/sec
   #param.DL=0.7*param.Dm+0.5*param.norm_v0*param.rp*2.0
-  param.DL=4.9e-4  # m2/sec from another paper
+
   #print('param.DL={}'.format(param.DL))
   #compute param.end_time for the simulation
   #want exactly 1 to be not None and 1 None
@@ -237,33 +252,6 @@ def create_param(mods, print=print):
   #total time to simulate (dimensionless).  This is handled differently because
   #we allow 2 ways to override (cycles takes precedence over time)
   #First we check for real_cycle_time and real_vent_time
-  if mods:
-    rct=mods.get('real_cycle_time', None)
-    rvt=mods.get('real_vent_time', None)
-    
-    #note: param.real_vent_time will only exist if this method of setting was used.
-    #simulation should not care about real cycle time, this is just for reporting
-    #in log files
-    if rct:
-      param.cycle_time=rct/param.norm_t0
-      param.real_cycle_time=rct
-      print('using a real cycle time of {:7.2f} -> {:7.2f}'.format(rct,param.cycle_time))
-    if rvt:
-      param.vent_time=rvt/param.norm_t0
-      param.real_vent_time=rvt
-      print('using a real vent time of {:7.2f} -> {:7.2f}'.format(rvt,param.vent_time))    
-    param.end_time=2*param.cycle_time       #default will be 2 cycles
 
-    if mods.get('cycles', None) is not None:
-      param.end_time=param.cycle_time*mods['cycles']
-    else:
-      if mods.get('time', None) is not None:
-        param.end_time=mods['time']
-    print('running for end_time of {}'.format(param.end_time))
-    #this might not be an integer
-    param.cycles=param.end_time/param.cycle_time
-    #set real times
-    param.real_cycle_time=param.cycle_time*param.norm_t0
-    param.real_vent_time=param.vent_time*param.norm_t0
   print("parameter initialization completed")
   return param

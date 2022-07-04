@@ -16,6 +16,7 @@
 import subprocess
 import os
 import errno
+import pickle
 
 def get_git_commit():
     #return latest git commit hash
@@ -57,3 +58,15 @@ def limit(x,a,b):
   if b is not None:
     y[y>b]=b
   return y
+
+def saveaspickle(file, data):
+    with open(file, 'wb') as f:
+#    # Pickle the 'data' dictionary using the highest protocol available.
+        pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
+
+def loadpickle(file):
+    with open(file, 'rb') as f:
+    # The protocol version used is detected automatically, so we do not
+    # have to specify it.
+        data = pickle.load(f)
+    return data

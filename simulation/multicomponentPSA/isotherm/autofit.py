@@ -45,6 +45,7 @@ def loadpickle(file):
     return data
 
 
+
 if __name__=="__main__":
 ###################### post processing simulation data######
     presurelist =[1e3, 1e4, 5e4, 1e5, 5e5, 1e6]
@@ -62,6 +63,7 @@ if __name__=="__main__":
     with open(recording_file,"w") as fin:
         fin.write(" ")
     for i in components:
+        dictdata[i] = collections.defaultdict(dict)
         with open(recording_file,"a") as fin:
             fin.write("{}----------\n".format(i))
         for j in presurelist:       
@@ -74,7 +76,8 @@ if __name__=="__main__":
                 for file in files:
                     filepath = os.path.join(finalresultfile_parentfolder,file)
                     tempmof,temppressure,temploading,temploadingerro = findloading(filepath)
-                    dictdata[tempmof][temppressure] = temploading
+                    
+                    dictdata[i][tempmof][temppressure] = temploading
                     moflist.append(tempmof)
                     #strtoouputfile="{},{},{}".format(tempmof,temppressure,temploading)
         moflist=list(set(moflist))
@@ -82,8 +85,8 @@ if __name__=="__main__":
         print(moflist)
         with open(recording_file,"a") as fin:
             for mofitems in moflist:
-                fin.write("{} [Pa],{}\n".format(mofitems,dictdata[mofitems])) 
-        saveaspickle(os.path.join(mainpath,'isotherms.pickle'),dictdata)
+                fin.write("{} [Pa],{}\n".format(mofitems,dictdata[i][mofitems])) 
+    saveaspickle(os.path.join(mainpath,'isotherms.pickle'),dictdata)
 
 
 

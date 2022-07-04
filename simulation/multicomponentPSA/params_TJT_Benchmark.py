@@ -60,8 +60,9 @@ def create_param(mods, print=print):
   param.state_names=['P','T','Tw'] + param.xnames + param.ynames
   param.state_sizes=[] # will be filled in when we do init()
 
-  param.feed_yi=[0.1,0.8, 0.1] #feed gas fraction of component i
-  param.ini_yi = [0.1, 0.8, 0.1] # gas composition used for initialization state variables yi before calling the odes solver
+  param.collect = ['zL_tads','z0_teva','zL_tblw'] 
+  param.feed_yi=[0.05,0.9, 0.05] #feed gas fraction of component i
+  param.ini_yi = [0.05, 0.9, 0.05] # gas composition used for initialization state variables yi before calling the odes solver
   param.isomodel='Langmuir-Freundlich' # types of isotherm model (curruntly available:'Langmuir-Freundlich'; )
   param.bi=[3.499,2.701, 7.185]   # [1/bar] @ Room temp
   param.qsi=[6.29, 4.59, 4.94]  #saturation constant for component i  [mol/kg]=[mmol/g] (at infinite pressure)

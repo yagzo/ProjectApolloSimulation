@@ -1,8 +1,5 @@
 #!/usr/bin/env python3.7
 
-from cgi import test
-from pydoc import importfile
-from xml.dom.minidom import Attr
 #from params_ternary import create_param
 from onebedmulticomponent import adsorp_equilibrium, cyclic_steady_state, plot_data
 from onebedmulticomponent import adsorp_equilibrium_array
@@ -14,6 +11,8 @@ from onebedmulticomponent import purity_recovery
 import numpy as np
 from onebedmulticomponent import AttrDict
 from onebedmulticomponent import simulate_singlebed
+from onebedmulticomponent import purity_recovery
+from onebedmulticomponent import plot_data
 from difference import gen_j5_functions
 from difference import diffplus
 from difference import diffminus
@@ -32,18 +31,24 @@ import pickle
 #dminus = diffminus(P,Pz0)
 #print(dminus)
 
+import params_benchmark
+localparam = params_benchmark.create_param(None)
 
-bunch, status = cyclic_steady_state(params_file='params')
-with open('statusdata.pickle', 'wb') as f:
+#bunch, status = cyclic_steady_state(localparam)
+#with open('statusdatabenchmark.pickle', 'wb') as f:
 #    # Pickle the 'data' dictionary using the highest protocol available.
-    pickle.dump(status, f, pickle.HIGHEST_PROTOCOL)
+#    pickle.dump(status, f, pickle.HIGHEST_PROTOCOL)
 
-with open('statusdata.pickle', 'rb') as f:
+with open('statusdatabenchmark.pickle', 'rb') as f:
     # The protocol version used is detected automatically, so we do not
     # have to specify it.
     status = pickle.load(f)
 
 bunch = status.snap[status.cycle]
+
+plot_data(bunch,status.param,'./TJT/TJT')
+print(purity_recovery(bunch,status.param))
+
 #print(bunch.t, np.shape(bunch.t))
 #print(status.param)
 #param = create_param(None)
@@ -52,8 +57,15 @@ bunch = status.snap[status.cycle]
 
 
 ##test integral  of discrete variable over given time span###
-mole =purity_recovery(bunch,status.param)
-print(mole)
+#mole =purity_recovery(bunch,status.param)
+#print(mole)
 
 
 
+###test isothermfitting
+#with open('./isotherm/isotherms.pickle', 'rb') as f:
+    # The protocol version used is detected automatically, so we do not
+    # have to specify it.
+#    isothermdict = pickle.load(f)
+
+#print(isothermdict)
