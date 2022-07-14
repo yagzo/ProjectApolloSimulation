@@ -13,16 +13,19 @@
 #
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
+from cgi import parse_multipart
+from cmath import inf
 import sys
 import math
 import collections
+import pymoo
 
-import matplotlib.pyplot as plt
+
 import numpy as np
-from numpy import concatenate
 from numpy import zeros_like
 from numpy import column_stack
 from numpy import hstack
+from pymoo.core.problem import ElementwiseProblem
 import numpy
 import scipy
 import scipy.integrate
@@ -34,6 +37,7 @@ import importlib
 import pickle
 ##local modules
 import plots
+import params
 
 #Please use python 3.6 or newer
 vinfo=sys.version_info
@@ -496,7 +500,7 @@ def simulate_singlebed(localparam,output_dir='./outcome'):
 
   return 0
 
-def cyclic_steady_state(localparam,output_dir='./outcome', maxcycle = 100, tolerance = 1e-4):
+def cyclic_steady_state(localparam,output_dir='./outcome', maxcycle = 50, tolerance = 1e-4):
   # this function simulate mutiple psa process until cyclic steady state is reached, and store the data generated during simulation
   # return: "status" variable has the following data structure, type(status): AttriDict 
   #          
@@ -526,7 +530,7 @@ def cyclic_steady_state(localparam,output_dir='./outcome', maxcycle = 100, toler
       x0 = xend
 
     ev=np.linspace(0,param.norm_tend,param.tN) # set the intergration time span with a given uniform time step
-  
+
     #integrate the odae functions oadesmodel (discretized using finite volume method)
     bunch =scipy.integrate.solve_ivp(oadesmodel, (0, param.norm_tend), x0, vectorized=False, t_eval=ev,
                                   method='LSODA')
@@ -639,16 +643,18 @@ def purity_recovery(bunch,param):
 
     #evacuation step
     # z=0
-    assert (param.index_tend == len(bunch.t)-1)
+    #assert (param.index_tend == len(bunch.t)-1)
     t_eva=bunch.t[param.index_tblw+1:param.index_tend]
     eva_Pz0 = 1/param.norm_P0 *(param.PL + (param.PI-param.PL)*np.exp(-param.lamda_eva* (t_eva-param.norm_tblw) *param.norm_t0))  # t(=tao in the reference equation (57)) is already normalized
 
     eva_Tz0 = data.T[0, param.index_tblw+1:param.index_tend] # dummy boundary conditions, engergy balances are not actually computed
     eva_vz0 = -2/param.deltaZ*(4/150*param.epst**2)*(param.rp**2)*param.norm_P0/param.mu/param.norm_v0/param.L*(data.P[0, param.index_tblw+1:param.index_tend] - eva_Pz0) #inlet veloctiy computed with P1 and P0.5
     #print(eva_vz0)
-    assert((eva_vz0 <= 0).all()) #check if all the velocity is negative, if so apply abs to eva_vz0, because we need a postive number for molar amount
-    
-    eva_vz0= np.abs(eva_vz0)
+    if not ((eva_vz0 <= 0).all()): #check if all the velocity is negative, if so apply abs to eva_vz0, because we need a postive number for molar amount
+      print("error some velocities at the outlet z=0 of the blowdown step is positive! ")
+      return None
+    else:
+      eva_vz0= np.abs(eva_vz0)
     mole['z0_teva'][yi]= gnorm * scipy.integrate.simpson(data[yi][0, param.index_tblw+1:param.index_tend] *eva_vz0* eva_Pz0 / eva_Tz0, t_eva)
 
   #now we can compute purity and recovery using eq(60) andeq(61)
@@ -662,8 +668,92 @@ def purity_recovery(bunch,param):
    
   return obj
 
-def save_to_pickle():
-  pass
+def optimization_psa():
+  #this function trys to optimze the entire psa process on a given adsorbent by adjusting follwoing parameters:
+
+  pass  
   
-  
+class PSA_optimization(ElementwiseProblem):
+
+  def __init__(self, mofdict, **kwargs):
+    #optimization varibales
+    # x[0]=tpre [t] : pressurization time duration
+    # x[1]=tads [t] : adsorption time duration 
+    # x[2]=tblw [t] : desorption time duration 
+    # x[3]=teva [t] : evacuation time duration
+    # x[4]=feed_pressure [bar] : feed pressure/the highest pressure/adsorption pressure
+    # x[5]=vfeed [m/s]: feed velocity
+    # x[6]=PI [Pa] : intermediate pressure
+    # x[7]=PL [Pa] : evacuation pressure/ the lowest pressure
+    super().__init__(n_var=8,
+                     n_obj=2,
+                    n_constr=2,
+                    xl=np.array([10,10, 10, 10, 1, 0.1, 1e4, 1e4]),
+                    xu=np.array([20,100,100,100,10,2, 1e6, 1e6]),
+                    **kwargs)
+    # this is the parameters for TJT-100
+    self.param = collections.defaultdict()
+    
+    if mofdict == None: #default TJT-100
+      self.param['bi']=[3.499, 2.701, 7.185]   # [1/bar] @ Room temp
+      self.param['qsi']=[6.29,4.59, 4.94]  #saturation constant for component i  [mol/kg]=[mmol/g] (at infinite pressure)
+      self.param['qs0'] = 6.29 #[mol/kg]
+      self.mofname="TJT-100"
+    else:
+      self.param['bi']=mofdict['bi']
+      self.param['qsi']=mofdict['qsi'] 
+      self.param['qs0'] = mofdict['qs0']
+      self.mofname = mofdict['name']
+
+
+  def _evaluate(self, x, out, *args, **kwargs):
+    # given a set of input parameter x (element order see the comments in funcction __ini__)
+    # f1:purity and f2:recovery
+    # create localparameters with overloaded x input
+
+    paramoverload =collections.defaultdict() #create a dictionary where parameters that need to be overloaded to create_param function
+    paramoverload['tpre'] = x[0]
+    paramoverload['tads'] = x[1]
+    paramoverload['tblw'] = x[2]
+    paramoverload['teva'] = x[3]
+    paramoverload['feed_pressure'] = x[4]
+    paramoverload['vfeed'] =x[5]
+    paramoverload['PI'] = x[6]
+    paramoverload['PL'] = x[7]
+    # overload mof parameters(this is a test )
+    paramoverload['bi'] = self.param['bi']
+    paramoverload['qsi'] = self.param['qsi']
+    paramoverload['qs0'] = self.param['qs0']
+    # create a dict of local parameters
+    if paramoverload['PL'] < paramoverload['PI'] and (paramoverload['feed_pressure']*1e5 > paramoverload['PI']): # check if PL<PI<PH
+      localparam= params.create_param(paramoverload) 
+
+      finalcyle, status = cyclic_steady_state(localparam, tolerance = 3e-3) # simuate until css is reached
+
+      if status.converged == True: # if ccs is reached then compute purity and recovery
+        obj = purity_recovery(finalcyle, localparam) 
+        if obj: #if purity and recovery are correctly computed then set f1 and f2
+          f1 = -1*obj['purity_ads']['yB'] # yB = see params.py; here it denote ethene
+          f2 = -1*obj['recovery']['yB']
+        else:
+          f1= 0
+          f2= 0
+      else:
+        f1= 0
+        f2= 0
+    else:
+      f1= 0
+      f2= 0   
+
+
+    g1 = x[7] - x[6]  # PL <= PI
+    g2 = x[6] - x[4]*1e5 #PI <= PH
+
+    out["F"] = [f1, f2]
+    out["G"] = [g1, g2]
+
+
+    
+
+
 

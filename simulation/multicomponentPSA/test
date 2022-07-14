@@ -1,22 +1,12 @@
 #!/usr/bin/env python3.7
 
 #from params_ternary import create_param
-from onebedmulticomponent import adsorp_equilibrium, cyclic_steady_state, plot_data
-from onebedmulticomponent import adsorp_equilibrium_array
-from onebedmulticomponent import create_norm
-from onebedmulticomponent import compute_alpha
-from onebedmulticomponent import plot_data
-from onebedmulticomponent import cyclic_steady_state
 from onebedmulticomponent import purity_recovery
+from onebedmulticomponent import plot_data
 import numpy as np
-from onebedmulticomponent import AttrDict
-from onebedmulticomponent import simulate_singlebed
-from onebedmulticomponent import purity_recovery
-from onebedmulticomponent import plot_data
-from difference import gen_j5_functions
-from difference import diffplus
-from difference import diffminus
+import util
 import pickle
+import os
 
 #P=[1,2,3,4,5]
 #Pz0=0
@@ -31,23 +21,20 @@ import pickle
 #dminus = diffminus(P,Pz0)
 #print(dminus)
 
-import params_benchmark
-localparam = params_benchmark.create_param(None)
+#import params_benchmark
+#param = params_benchmark.create_param(None)
 
 #bunch, status = cyclic_steady_state(localparam)
 #with open('statusdatabenchmark.pickle', 'wb') as f:
 #    # Pickle the 'data' dictionary using the highest protocol available.
 #    pickle.dump(status, f, pickle.HIGHEST_PROTOCOL)
 
-with open('statusdatabenchmark.pickle', 'rb') as f:
-    # The protocol version used is detected automatically, so we do not
-    # have to specify it.
-    status = pickle.load(f)
+#status= util.loadpickle('/mnt/c/Simulation/ProjectApolloSimulation/simulation/multicomponentPSA/statusdatabenchmark.pickle')
 
-bunch = status.snap[status.cycle]
+#bunch = status.snap[status.cycle]
 
-plot_data(bunch,status.param,'./TJT/TJT')
-print(purity_recovery(bunch,status.param))
+#plot_data(bunch,status.param,'./TJT/TJT')
+#print(purity_recovery(bunch,status.param))
 
 #print(bunch.t, np.shape(bunch.t))
 #print(status.param)
@@ -63,9 +50,46 @@ print(purity_recovery(bunch,status.param))
 
 
 ###test isothermfitting
-#with open('./isotherm/isotherms.pickle', 'rb') as f:
-    # The protocol version used is detected automatically, so we do not
-    # have to specify it.
-#    isothermdict = pickle.load(f)
+#iso
 
 #print(isothermdict)
+
+### optimization 
+
+from onebedmulticomponent import PSA_optimization
+from pymoo.algorithms.moo.nsga2 import NSGA2
+from pymoo.factory import get_sampling, get_crossover, get_mutation
+from pymoo.factory import get_termination
+from pymoo.optimize import minimize
+
+from pymoo.core.problem import starmap_parallelized_eval
+
+import multiprocessing
+
+# the number of processes to be used
+n_proccess = 8
+pool = multiprocessing.Pool(n_proccess)
+problem = PSA_optimization(runner=pool.starmap, func_eval=starmap_parallelized_eval)
+
+print(problem.param, problem.mofname)
+#problem = PSA_optimization()
+
+# algorithm = NSGA2(
+#     pop_size=40,
+#     n_offsprings=10,
+#     sampling=get_sampling("real_random"),
+#     crossover=get_crossover("real_sbx", prob=0.9, eta=15),
+#     mutation=get_mutation("real_pm", eta=20),
+#     eliminate_duplicates=True
+# )
+
+# termination = get_termination("n_gen", 40)
+
+# res = minimize(problem,
+#                algorithm,
+#                termination,
+#                seed=1,
+#                save_history=True,
+#                verbose=True)
+
+# util.saveaspickle('PSAOptimizationResults.pickle',res)

@@ -6,13 +6,17 @@ import params
 import collections
 import os
 import numpy as np
+import pygaps
 #Step 1: Specifiy simulation parameters,some parameters are overode
 #for simulation make sure you see "params overiding ... " in terminal when running the script,only for qsi,qs0 and bi
 paramoverload =collections.defaultdict() #create a dictionary where parameters that need to be overloaded to create_param function
 isothermparameters = util.loadpickle(os.path.join(os.getcwd(),'graph','LangmuirIsotherm.pickle'))#load isotherm parameters from pickle(done by isotherfit.py)
 
-mofid=['NEXXEV'] #
-adsorbates=["C2H2","ethene","ethane"]
+
+mofid=['NEXXEV'] # one specific mof 
+#mofid=isothermparameters['C2H2']#simulate for all mofs in the database
+
+adsorbates=["C2H2","ethene","ethane"] #adsorbate molecules
 paramoverload['qsi']=np.zeros((len(adsorbates),)) # intialize with an empty dictionary
 paramoverload['qs0']=np.zeros((len(adsorbates),))
 paramoverload['bi']=np.zeros((len(adsorbates),))
@@ -20,6 +24,7 @@ paramoverload['bi']=np.zeros((len(adsorbates),))
 paramoverload['feed_pressure'] = 10
 paramoverload['PI'] = 1e5
 paramoverload['PL'] = 1e4
+
 for mof in mofid:
     for i in adsorbates:
         paramoverload['qsi'][adsorbates.index(i)]= isothermparameters[i][mof].model.params['n_m']
@@ -34,13 +39,15 @@ for mof in mofid:
     outputdir = os.path.join(os.getcwd(),'outcome' )
     util.safe_mkdir(outputdir)
     filepickle = os.path.join(outputdir, 'statestatus{}.pickle'.format(mof))
-    #util.saveaspickle(filepickle, status)
+    #util.saveaspickle(filepickle, status) # save for the psa simulation data
 
     #Step3: postprocessing and plotting
     # compute purity and recovery
     status = util.loadpickle(filepickle)
     param =status.param
-    onebedmulticomponent.plot_data(status.snap[status.cycle],param,os.path.join(outputdir,mof,'{}'.format(mof)))
+    #onebedmulticomponent.plot_data(status.snap[status.cycle],param,os.path.join(outputdir,mof,'{}'.format(mof)))
     param.collect= ['zL_tblw','zL_tads','z0_teva']
-    status.obj = onebedmulticomponent.purity_recovery(status.snap[status.cycle],param)
-    print(status.obj)
+    #status.obj = onebedmulticomponent.purity_recovery(status.snap[status.cycle],param)
+    if status.obj:
+        print(status.obj['purity_ads'], status.obj['recovery'], mof )
+    #util.saveaspickle(filepickle, status) # save for the calculated purity and recovery

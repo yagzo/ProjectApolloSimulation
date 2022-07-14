@@ -45,7 +45,8 @@ def compnames(numberofcomponents=2):
     return xlist,ylist
 
 
-def create_param(mods, print=print):
+def create_param(mods, print=print,verbose=False):
+  # if verbose== True, overloaded parameters are print to screen, default set to False
   #mods is a dict to override the parameter defaults set here
   #override print function if needed for debug statements to a log file
   #any keys with value of None are ignored
@@ -75,8 +76,8 @@ def create_param(mods, print=print):
   #the mode for the difference scheme
   param.mode=1 #differencing scheme 1: forward difference； 2：vanleer； 4：weno 
   param.bed=1 #number of operating beds, its value must be either 1 or 2
-  param.N=20  #discretization steps in spatial direction
-  param.tN= 101 # number of sampling points over the entire cycle time span (*both ends of the line segement are included; starts from 0; must be an integer greater or equal than 2)
+  param.N= 10  #discretization steps in spatial direction
+  param.tN= 51 # number of sampling points over the entire cycle time span (*both ends of the line segement are included; starts from 0; must be an integer greater or equal than 2)
   #param.adsorb=True    #set to True to have adsorption happen
   #cycle_time, vent_time
   #param.cycle_time=36       #time for a half-cycle in dimensionless time units
@@ -182,7 +183,8 @@ def create_param(mods, print=print):
     if mods != None:
       if k in mods and mods[k] is not None:
         param[k]=mods[k]
-        print('params overriding {}:{}'.format(k, param[k]))
+        if verbose:# if verbose==True(default is false) then print the overloaded parameters to screen
+          print('params overriding {}:{}'.format(k, param[k]))
     
   #####
   #Things we have to calculate, need to do this after the overriding
@@ -252,6 +254,6 @@ def create_param(mods, print=print):
   #total time to simulate (dimensionless).  This is handled differently because
   #we allow 2 ways to override (cycles takes precedence over time)
   #First we check for real_cycle_time and real_vent_time
-
-  print("parameter initialization completed")
+  if verbose:
+    print("parameter initialization completed")
   return param
