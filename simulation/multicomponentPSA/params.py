@@ -1,6 +1,6 @@
 import math
 import string
-import orifice
+import numpy as np
 #Copyright (c) 2018 Daniel B. Grunberg
 #
 #This program is free software: you can redistribute it and/or modify
@@ -44,6 +44,21 @@ def compnames(numberofcomponents=2):
         xlist.append("x{}".format(alphabet_list[i]))
     return xlist,ylist
 
+def product_loc(bi):
+  # set the product location parameter, which is used to calculate recovery, from the isotherm parameter Bi
+  # Hueristics 1: the larger the Bi, the stronger the interactions
+  #            2: Heavy component is collected at the evacuation step ('z0_teva')
+  #            3: Light product is collected at the adsorption step ('zL_tads')
+  #            4: other are collected at the desorption step ('zL_tblw')
+  # please note, this is based on purely heuristics, which does necessarily garuntee a correct setting
+  # please note, currently, only 3 column ends are coded to be able to collect product streams, they are 'zL_tblw', 'zL_tads','z0_teva'
+  productstreamsposition=[]
+  indices = np.argsort(bi) # sorted in an ascending order
+  for k in range(len(bi)):
+    productstreamsposition.append('zL_tblw')
+  productstreamsposition[indices[0]]='zL_tads'  # the lightest component (raffinate)
+  productstreamsposition[indices[-1]]='z0_teva' # the heaviest component
+  return productstreamsposition
 
 def create_param(mods, print=print,verbose=False):
   # if verbose== True, overloaded parameters are print to screen, default set to False
@@ -59,7 +74,6 @@ def create_param(mods, print=print,verbose=False):
   param.nocomponents = 3 # number of components
   param.feed_yi=[0.05, 0.9, 0.05] #feed gas fraction of component i
   param.ini_yi = [0.1, 0.8, 0.1] # gas composition used for initialization state variables yi before calling the odes solver
-  param.collect = ['zL_tads','z0_teva','zL_tblw'] # where each component is collected, following the format "z+[0/L](z=0/z=L)+_t[pre/ads/blw/eva](three letter code indicating each step)"
   param.isomodel='Langmuir-Freundlich' # types of isotherm model (curruntly available:'Langmuir-Freundlich'; )
   param.bi=[0.0086, 0.25, 0.0086]   # [1/bar] @ Room temp
   param.qsi=[3.09,5.84, 3.09]  #saturation constant for component i  [mol/kg]=[mmol/g] (at infinite pressure)
@@ -210,8 +224,9 @@ def create_param(mods, print=print,verbose=False):
   param.rout=param.rin + 0.25
   param.epst=param.epsilon/(1-param.epsilon)
   param.epsb=(1-param.epsilon)/param.epsilon
-  param.cellsize=param.L/param.N
-  param.deltaZ=param.cellsize/param.L   # nondimensional deltaZ
+  #param.cellsize=param.L/param.N
+  #param.deltaZ=param.cellsize/param.L   # nondimensional deltaZ
+  param.deltaZ=1/param.N  # nondimensional deltaZ
   param.container_vol=param.area*param.L #volume of reactor (m3)
   #We compute the initial flow rate and use that for velocity normalization
   #in_flow=orifice.orifice_flow2(param.feed_pressure*1e5/1000,100,param.input_orifice,T=param.Ta)/60
@@ -243,6 +258,9 @@ def create_param(mods, print=print,verbose=False):
   param.index_tblw = math.floor(param.norm_tblw/param.tstep)
   param.index_tend = math.floor(param.norm_tend/param.tstep)
 
+  #define product stream
+  #param.collect = ['zL_tads','z0_teva','zL_tblw'] # where each component is collected, following the format "z+[0/L](z=0/z=L)+_t[pre/ads/blw/eva](three letter code indicating each step)"
+  param.collect = product_loc(param.bi)
   #NOTE: norm.v0 is computed after this, will be set to param.v0
   #Axial dispersion coefficient m2/sec
   #param.DL=0.7*param.Dm+0.5*param.norm_v0*param.rp*2.0

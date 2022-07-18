@@ -3,6 +3,7 @@
 #from params_ternary import create_param
 from onebedmulticomponent import purity_recovery
 from onebedmulticomponent import plot_data
+from isothermfit import getisothermparam
 import numpy as np
 import util
 import pickle
@@ -66,14 +67,20 @@ from pymoo.core.problem import starmap_parallelized_eval
 
 import multiprocessing
 
-# the number of processes to be used
-n_proccess = 8
+
+isothermdatabase=util.loadpickle(os.path.join(os.getcwd(),'graph','LangmuirIsotherm.pickle')) # load the isotherm database
+mofdict=getisothermparam(isothermdatabase,'NEXXEV',["C2H2","ethene","ethane"])
+
+n_proccess = 8 # the number of processes to be used
 pool = multiprocessing.Pool(n_proccess)
 problem = PSA_optimization(runner=pool.starmap, func_eval=starmap_parallelized_eval)
 
-print(problem.param, problem.mofname)
-#problem = PSA_optimization()
 
+### simulation
+#bunch, status = problem.css_simulate()
+#problem.plot()
+
+### optimization
 # algorithm = NSGA2(
 #     pop_size=40,
 #     n_offsprings=10,
@@ -92,4 +99,8 @@ print(problem.param, problem.mofname)
 #                save_history=True,
 #                verbose=True)
 
-# util.saveaspickle('PSAOptimizationResults.pickle',res)
+# util.saveaspickle(problem.optfilepickle,res)
+
+
+#optimization analysis
+problem.optanalysis()

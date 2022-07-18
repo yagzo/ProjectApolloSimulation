@@ -13,8 +13,7 @@
 #
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from cgi import parse_multipart
-from cmath import inf
+
 import sys
 import math
 import collections
@@ -26,6 +25,8 @@ from numpy import zeros_like
 from numpy import column_stack
 from numpy import hstack
 from pymoo.core.problem import ElementwiseProblem
+from pymoo.indicators.hv import Hypervolume
+import matplotlib.pyplot as plt
 import numpy
 import scipy
 import scipy.integrate
@@ -91,7 +92,7 @@ def create_norm():
   norm.qs0=param.qs0   #The normalization amount mol/kg
   norm.xi=norm.qs0     # qs,0  [mol/kg]
   norm.v0=param.norm_v0            #  [m/s]
-  norm.z0=param.L      # Length of cylinder [m]
+  #norm.z0=param.L      # Length of cylinder [m]
   norm.t0=param.norm_t0      # so t=time/norm.t0
 
   return norm
@@ -107,6 +108,7 @@ def create_dgroups(param):
   g=AttrDict()
   #for partial and total mass balances
   g.Pe=param.norm_v0*param.L/param.DL
+
   g.psi=param.R*param.norm_T0*param.qs0/param.PH*param.epsb*param.rho_s # qs0[mol/kg] 
   
   # for column energy balance
@@ -532,7 +534,7 @@ def cyclic_steady_state(localparam,output_dir='./outcome', maxcycle = 50, tolera
     ev=np.linspace(0,param.norm_tend,param.tN) # set the intergration time span with a given uniform time step
 
     #integrate the odae functions oadesmodel (discretized using finite volume method)
-    bunch =scipy.integrate.solve_ivp(oadesmodel, (0, param.norm_tend), x0, vectorized=False, t_eval=ev,
+    bunch =scipy.integrate.solve_ivp(oadesmodel, (0, param.norm_tend), x0, vectorized=False, t_eval=ev, 
                                   method='LSODA')
     
     x0= bunch.y[:,0] 
@@ -568,8 +570,6 @@ def plot_data(bunch, param, output_dir):
 
   data=AttrDict()
   data.data1=data_to_state(bunch.y,param)
-  print(np.shape(bunch.y))
-  #print(np.shape(bunch.y))
   data.data1.t = bunch.t
   data.data1.param = param
   fileprint('time :{}'.format(bunch.t))
@@ -600,6 +600,7 @@ def purity_recovery(bunch,param):
   obj['purity_blw']=AttrDict()
   obj['purity_eva']=AttrDict()
   obj['recovery']=AttrDict()
+  obj['purity'] = AttrDict()
   
   
 
@@ -659,23 +660,19 @@ def purity_recovery(bunch,param):
 
   #now we can compute purity and recovery using eq(60) andeq(61)
   for yi in param.ynames:
-    obj['purity_eva'][yi] = mole['z0_teva'][yi]/ np.sum([mole['z0_teva'][yi] for yi in param.ynames])
-    obj['purity_ads'][yi] = mole['zL_tads'][yi]/ np.sum([mole['zL_tads'][yi] for yi in param.ynames])
-    obj['purity_blw'][yi] = mole['zL_tblw'][yi]/ np.sum([mole['zL_tblw'][yi] for yi in param.ynames])
+    obj['purity_eva'][yi] = mole['z0_teva'][yi]/ np.sum([mole['z0_teva'][yii] for yii in param.ynames]) # yii is an alias of yi
+    obj['purity_ads'][yi] = mole['zL_tads'][yi]/ np.sum([mole['zL_tads'][yii] for yii in param.ynames])
+    obj['purity_blw'][yi] = mole['zL_tblw'][yi]/ np.sum([mole['zL_tblw'][yii] for yii in param.ynames])
     for where in param.collect:
       obj['recovery'][yi] = mole['{}'.format(param.collect[param.ynames.index(yi)])][yi] /np.sum([mole['z0_tads'][yi] , mole['z0_tpre'][yi]])
-
+      obj['purity'][yi] = mole['{}'.format(param.collect[param.ynames.index(yi)])][yi] / np.sum([ mole['{}'.format(param.collect[param.ynames.index(yi)])][yii] for yii in param.ynames])
    
   return obj
 
-def optimization_psa():
-  #this function trys to optimze the entire psa process on a given adsorbent by adjusting follwoing parameters:
-
-  pass  
-  
 class PSA_optimization(ElementwiseProblem):
 
-  def __init__(self, mofdict, **kwargs):
+
+  def __init__(self, mofdict=None, **kwargs):
     #optimization varibales
     # x[0]=tpre [t] : pressurization time duration
     # x[1]=tads [t] : adsorption time duration 
@@ -685,26 +682,28 @@ class PSA_optimization(ElementwiseProblem):
     # x[5]=vfeed [m/s]: feed velocity
     # x[6]=PI [Pa] : intermediate pressure
     # x[7]=PL [Pa] : evacuation pressure/ the lowest pressure
-    super().__init__(n_var=8,
+    # x[8]=L [m] : column length
+    super().__init__(n_var=9,
                      n_obj=2,
                     n_constr=2,
-                    xl=np.array([10,10, 10, 10, 1, 0.1, 1e4, 1e4]),
-                    xu=np.array([20,100,100,100,10,2, 1e6, 1e6]),
+                    xl=np.array([10,10, 10, 10, 1, 0.1, 1e4, 1e4, 0.1]),
+                    xu=np.array([20,100,100,100,10,2, 1e6, 1e6, 10]),
                     **kwargs)
     # this is the parameters for TJT-100
-    self.param = collections.defaultdict()
+    self.mofparam = collections.defaultdict()
     
     if mofdict == None: #default TJT-100
-      self.param['bi']=[3.499, 2.701, 7.185]   # [1/bar] @ Room temp
-      self.param['qsi']=[6.29,4.59, 4.94]  #saturation constant for component i  [mol/kg]=[mmol/g] (at infinite pressure)
-      self.param['qs0'] = 6.29 #[mol/kg]
+      self.mofparam['bi']=[3.499, 2.701, 7.185]   # [1/bar] @ Room temp
+      self.mofparam['qsi']=[6.29,4.59, 4.94]  #saturation constant for component i  [mol/kg]=[mmol/g] (at infinite pressure)
+      self.mofparam['qs0'] = 6.29 #[mol/kg]
       self.mofname="TJT-100"
     else:
-      self.param['bi']=mofdict['bi']
-      self.param['qsi']=mofdict['qsi'] 
-      self.param['qs0'] = mofdict['qs0']
+      self.mofparam['bi']=mofdict['bi']
+      self.mofparam['qsi']=mofdict['qsi'] 
+      self.mofparam['qs0'] = mofdict['qs0']
       self.mofname = mofdict['name']
-
+    # set the location of pickle file where we save the optimization results
+    self.filelocation()
 
   def _evaluate(self, x, out, *args, **kwargs):
     # given a set of input parameter x (element order see the comments in funcction __ini__)
@@ -720,20 +719,23 @@ class PSA_optimization(ElementwiseProblem):
     paramoverload['vfeed'] =x[5]
     paramoverload['PI'] = x[6]
     paramoverload['PL'] = x[7]
+    paramoverload['L'] =x[8]
     # overload mof parameters(this is a test )
-    paramoverload['bi'] = self.param['bi']
-    paramoverload['qsi'] = self.param['qsi']
-    paramoverload['qs0'] = self.param['qs0']
+    paramoverload['bi'] = self.mofparam['bi']
+    paramoverload['qsi'] = self.mofparam['qsi']
+    paramoverload['qs0'] = self.mofparam['qs0']
+    #paramoverload['collect'] = 
     # create a dict of local parameters
     if paramoverload['PL'] < paramoverload['PI'] and (paramoverload['feed_pressure']*1e5 > paramoverload['PI']): # check if PL<PI<PH
       localparam= params.create_param(paramoverload) 
 
-      finalcyle, status = cyclic_steady_state(localparam, tolerance = 3e-3) # simuate until css is reached
+      finalcyle, status = cyclic_steady_state(localparam, tolerance = 1e-4) # simuate until css is reached
 
       if status.converged == True: # if ccs is reached then compute purity and recovery
         obj = purity_recovery(finalcyle, localparam) 
         if obj: #if purity and recovery are correctly computed then set f1 and f2
-          f1 = -1*obj['purity_ads']['yB'] # yB = see params.py; here it denote ethene
+
+          f1 = -1*obj['purity']['yB'] # yB = see params.py; here it denote ethene
           f2 = -1*obj['recovery']['yB']
         else:
           f1= 0
@@ -751,6 +753,120 @@ class PSA_optimization(ElementwiseProblem):
 
     out["F"] = [f1, f2]
     out["G"] = [g1, g2]
+
+  def filelocation(self):
+    fileid="_{}".format(self.mofname) #a file used for saving results after optimization finishes
+    outputdir_opt = os.path.join(os.getcwd(),'optimzation',self.mofname) # set the output directory
+    self.optdir = outputdir_opt #optimization directory
+    util.safe_mkdir(outputdir_opt) # make that directory if it doesn't exsit
+    self.optfilepickle = os.path.join(outputdir_opt, 'PSAOptimizationResults{}.pickle'.format(fileid)) # connet all the above varibales to make a pickle file directory for saving optimization results
+    outputdir_sim = os.path.join(os.getcwd(),'outcome',self.mofname)
+    self.simdir = outputdir_sim #simulation directory
+    util.safe_mkdir(outputdir_sim)
+    self.simfilepickle = os.path.join(outputdir_sim, 'PSASimulationResults{}.pickle'.format(fileid))
+    return self.simfilepickle, self.optfilepickle #[str] a complete path where pikcle is saved
+
+  def css_simulate(self, saveaspickle = True):
+    paramoverload =collections.defaultdict()
+    paramoverload['bi'] = self.mofparam['bi']
+    paramoverload['qsi'] = self.mofparam['qsi']
+    paramoverload['qs0'] = self.mofparam['qs0']
+    paramoverload['L'] = 1.5
+    localparam= params.create_param(paramoverload, verbose=True)
+
+    bunch, status = cyclic_steady_state(localparam)
+    if saveaspickle == True  : 
+        util.saveaspickle(self.simfilepickle, status) # save to a pickle file
+        
+    return bunch, status
+
+  def plot(self):
+    status = util.loadpickle(self.simfilepickle)
+    if status.converged == True:
+      print("plotting ...")
+      plot_data(status.snap[status.cycle], status.param, os.path.join(self.simdir,'{}'.format(self.mofname)))
+      print("plotting done!")
+    else:
+      print("plotting failed, solution not converged!")
+
+  def optanalysis(self):
+    res = util.loadpickle(self.optfilepickle)
+    X = res.X
+    F = res.F
+    hist = res.history
+    # objective space plot
+    approx_ideal = F.min(axis=0)
+    #approx_nadir = F.max(axis=0)
+    plt.figure(figsize=(7, 5))
+    plt.scatter(F[:, 0], F[:, 1], s=30, facecolors='none', edgecolors='blue')
+    plt.xlabel("Purity- C2H4")
+    plt.ylabel("Recovery- C2H4")
+    plt.scatter(approx_ideal[0], approx_ideal[1], facecolors='none', edgecolors='red', marker="*", s=100, label="Ideal Point (Approx)")
+    #plt.scatter(approx_nadir[0], approx_nadir[1], facecolors='none', edgecolors='black', marker="p", s=100, label="Nadir Point (Approx)")
+    plt.title("Objective Space")
+    plt.legend()
+    plt.savefig(os.path.join(self.optdir,'ObjectiveSpace'))
+
+    n_evals = []             # corresponding number of function evaluations\
+    hist_F = []              # the objective space values in each generation
+    hist_cv = []             # constraint violation in each generation
+    hist_cv_avg = []         # average constraint violation in the whole population
+
+    for algo in hist:
+
+        # store the number of function evaluations
+        n_evals.append(algo.evaluator.n_eval)
+
+        # retrieve the optimum from the algorithm
+        opt = algo.opt
+
+        # store the least contraint violation and the average in each population
+        hist_cv.append(opt.get("CV").min())
+        hist_cv_avg.append(algo.pop.get("CV").mean())
+
+        # filter out only the feasible and append and objective space values
+        feas = np.where(opt.get("feasible"))[0]
+        hist_F.append(opt.get("F")[feas])
+
+    # replace this line by `hist_cv` if you like to analyze the least feasible optimal solution and not the population
+    vals = hist_cv_avg
+
+    k = np.where(np.array(vals) <= 0.0)[0].min()
+    print(f"Whole population feasible in Generation {k} after {n_evals[k]} evaluations.")
+
+    plt.figure(figsize=(7, 5))
+    plt.plot(n_evals, vals,  color='black', lw=0.7, label="Avg. CV of Pop")
+    plt.scatter(n_evals, vals,  facecolor="none", edgecolor='black', marker="p")
+    plt.axvline(n_evals[k], color="red", label="All Feasible", linestyle="--")
+    plt.title("Convergence")
+    plt.xlabel("Function Evaluations")
+    plt.ylabel("Constraint Violation")
+    plt.legend()
+    plt.savefig(os.path.join(self.optdir,'converganceanalysis'))
+
+    #hypervolume plot
+    approx_ideal = F.min(axis=0)
+    approx_nadir = F.max(axis=0)
+    metric = Hypervolume(ref_point= np.array([1.0, 1.0]),
+                        norm_ref_point=False,
+                        zero_to_one=True,
+                        ideal=approx_ideal,
+                        nadir=approx_nadir)
+
+    hv = [metric.do(_F) for _F in hist_F]
+
+    plt.figure(figsize=(7, 5))
+    plt.plot(n_evals, hv,  color='black', lw=0.7, label="Avg. CV of Pop")
+    plt.scatter(n_evals, hv,  facecolor="none", edgecolor='black', marker="p")
+    plt.title("Convergence")
+    plt.xlabel("Function Evaluations")
+    plt.ylabel("Hypervolume")
+    plt.savefig(os.path.join(self.optdir,'Hypervolumeevolution'))
+
+    F1= np.array(F)[:,0]
+    (indexofmin,)= np.where(F1 == min(F1)) # the hightest purity point
+    print(X[indexofmin,:])
+    print(F[indexofmin,:])
 
 
     
