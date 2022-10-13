@@ -44,32 +44,42 @@ def compnames(numberofcomponents=2):
         xlist.append("x{}".format(alphabet_list[i]))
     return xlist,ylist
 
-def product_loc(bi):
+def product_loc(bi,ynames):
   # set the product location parameter, which is used to calculate recovery, from the isotherm parameter Bi
   # Hueristics 1: the larger the Bi, the stronger the interactions
   #            2: Heavy component is collected at the evacuation step ('z0_teva')
   #            3: Light product is collected at the adsorption step ('zL_tads')
   #            4: other are collected at the desorption step ('zL_tblw')
+  #
+  # test example:
+  #               ynames = ['yA', 'yB','yC']
+  #               bi = [4, 3, 2]
+  #               from params import product_loc
+  #               aa= product_loc(bi,ynames) 
+  #               print(aa)
+  # output: aa= ['yC', 'yB', 'yA']
+  #   
   # please note, this is based on purely heuristics, which does necessarily garuntee a correct setting
   # please note, currently, only 3 column ends are coded to be able to collect product streams, they are 'zL_tblw', 'zL_tads','z0_teva'
-  productstreamsposition=[]
+  orderedynames= [None] * len(bi) #initialization a list with length equal to ynames and bi 
   indices = np.argsort(bi) # sorted in an ascending order
-  for k in range(len(bi)):
-    productstreamsposition.append('zL_tblw')
-  productstreamsposition[indices[0]]='zL_tads'  # the lightest component (raffinate)
-  productstreamsposition[indices[-1]]='z0_teva' # the heaviest component
-  return productstreamsposition
+  for k in indices:
+    orderedynames[indices.tolist().index(k)] = ynames[k]
+  # the lightest component (raffinate)
+  # the heaviest component
+  return orderedynames
 
 def create_param(mods, print=print,verbose=False):
   # if verbose== True, overloaded parameters are print to screen, default set to False
   #mods is a dict to override the parameter defaults set here
   #override print function if needed for debug statements to a log file
   #any keys with value of None are ignored
-  #real_cycle_time and real_vent_time will override cycle_time and vent_time
-  #cycles and time are used to set the simulate end time
   param=AttrDict()
-  #Physical constants
-  param.R=8.314     #J/mol-K
+
+
+
+
+
   #Component related parameters
   param.nocomponents = 3 # number of components
   param.feed_yi=[0.05, 0.9, 0.05] #feed gas fraction of component i
@@ -83,94 +93,55 @@ def create_param(mods, print=print,verbose=False):
   #not doing Temp and Tw simulation at the moment
   param.Hi=[0, 0, 0]                    #heat of adsorption of component i  [J/mol]
 
-  
-
-
   #Simulation parameters
   #the mode for the difference scheme
   param.mode=1 #differencing scheme 1: forward difference； 2：vanleer； 4：weno 
-  param.bed=1 #number of operating beds, its value must be either 1 or 2
   param.N= 10  #discretization steps in spatial direction
   param.tN= 51 # number of sampling points over the entire cycle time span (*both ends of the line segement are included; starts from 0; must be an integer greater or equal than 2)
-  #param.adsorb=True    #set to True to have adsorption happen
-  #cycle_time, vent_time
-  #param.cycle_time=36       #time for a half-cycle in dimensionless time units
-  #param.vent_time=23.04        #from beginning of cycle in dimensionless time units
+  
   #Physical system parameters
   param.Ta=298    #room temperature in K
-  #Approximate Inviracare XL cylinders
+  #Bed Size
   param.D=0.30     #Diameter of cylinder [m]
   param.L=1      #Length of cylinder (m)  - 13"
-  #Soda Bottle 2L
-  #param.D=0.10     #Diameter of cylinder [m]
-  #param.L=0.33      #Length of cylinder (m)  - 13"
-  #param.product_tank_volume=2.0/1000     # 2L in m3
-  #we set an orifice so that we can 5LPM at a certain pressure (3bar abs) and
-  #try to get an output pressure sits around that 3 bar.
-  #param.epsilon=0.36  # void fraction (fraction of space filled with gas vs. spheres)
-  param.epsilon=0.37
-  #param.epsilonp=0.35    #particle voidage
+  param.epsilon=0.37  # void fraction (fraction of space filled with gas vs. spheres)
   param.rp=0.7e-3          #particle radius [m]
-  #param.tauprime=3.0     # tortuosity
-  #flow params
-  #param.input_orifice=2.2     # dia mm - pressure feed
-  #param.output_orifice=1.40    # dia mm - to output tank
-  #we use an orifice that will provide 5LPM at 3 bar abs product tank
-  #param.product_orifice=0.475   # dia mm - output from product tank to patient
-  #param.blowdown_orifice=2.80     # dia mm
-  #param.vent_orifice=1.0        # dia mm
+  
+  #Cycle operating parameters
   param.feed_pressure = 1        #pressure in bar (1e5 Pa), absolute #this is also set as the highest pressure
   param.vfeed = 1 # intersitial feed velocity [m/s]
-
   param.PI= 0.5*1e5   # intermediate pressure in Pa                
   param.PL=0.25*1e5 # low pressure in Pa
  
+  #NOTE:Hyper parameters for determine which setup of PSA is adopted
+  param.bednum = 1 #number of beds default 1 bed 
+  param.bed = "VPSA" #default key denoting operating cycles (4-step VPSA or 6-step DR-PSA)
+
+  if mods['bed'] == "VPSA" or not('bed' in mods.keys()): # 4-step VPSA(default time length)
+    param.bed = mods['bed']
+    param.lamda_pre=0.5 # [s-1] pressurization profile parameter
+    param.lamda_blw=0.5 # [s-1] blowdown pressure profile parameter
+    param.lamda_eva=0.5 # [s-1] evacuation pressure profile parameter
+    param.tpre = 15 # [s] pressurization duration time
+    param.tads = 15 # [s] adsorption duration time
+    param.tblw = 30 # [s] blowdown duration time
+    param.teva = 40 # [s] evacuation duration time
   
-  #parameters used in setting boundary conditions for 4 operating steps 
-  param.lamda_pre=0.5 # [s-1] pressurization profile parameter
-  param.lamda_blw=0.5 # [s-1] blowdown pressure profile parameter
-  param.lamda_eva=0.5 # [s-1] evacuation pressure profile parameter
-  param.tpre = 15 # [s] pressurization duration time
-  param.tads = 15 # [s] adsorption duration time
-  param.tblw = 30 # [s] blowdown duration time
-  param.teva = 40 # [s] evacuation duration time
+  if mods['bed'] == "DRPSA": # 6-step DR-VPSA(default time length)
+    param.bed = mods['bed']
+    param.lamda_pre=0.5 # [s-1] pressurization profile parameter
+    param.lamda_blw=0.5 # [s-1] blowdown pressure profile parameter
+    param.lamda_eva=0.5 # [s-1] evacuation pressure profile parameter
+    param.tpre = 15 # [s] pressurization duration time
+    param.tads = 15 # [s] adsorption duration time
+    param.thr = 30 # [s] heavy reflux duration time
+    param.tblw = 30 # [s] blowdown duration time
+    param.teva = 40 # [s] evacuation duration time
+    param.tlr = 30 # [s] light reflux duration time
+    param.R_LR = 0.5 # light reflux ratio = vin_LR/vfeed 
+    param.R_HR = 0.5 # heavy reflux ratio = vin_HR/vfeed 
 
-  
-  #param.product_pressure=2     # bar in output product tank (not used)
-  #Note: random sphere packing is 64%, densest is 74%, void fractions=.36, .26
-  #param.DL=1.0        #Axial dispersion coefficient (m2/s)
-  #Mol wt O=16, N=14
-  #air is about 14e-3 kg/mol
-  #These are for my calculation, note different from paper (paper was doing
-  #CO2 and N2 separation, and used a more complex Langmuir dual-site model
-  #param.qAs=5.26e-3  #saturation constant for O2  mol/cm3 (at infinite pressure)
-  #param.qBs=5.26e-3  #saturation constant for N2  mol/cm3 (at infinite pressure)
-  #Langmuir constants.  inverse of pressure mol/m3 where we reach 50% of saturation
-  #Estimated these from chart in Yang book at 1 ATM.
-  
-  #param.bA=573.5   # cm3/mol, inverse of 42.5 bar
-  #param.bB=2030    # cm3/mol, inverse of 12 bar
-  #From Mofahari 2013 paper, for Zeolite 13X
-  #param.bA=0.042    # 1/bar @ Room temp
-  #param.bB=0.616    # 1/bar @ Room temp
-  #From Jee paper, same as Mofahari but *0.10 for k3!!
-  #adding correct exponent on Pressure 
-
-  #From Sircar ch22 paper @ 25C
-  #param.bA=0.0295    # 1/bar @ Room temp
-  #param.bB=0.107    # 1/bar @ Room temp
-  #param.qAs=0.00312  #saturation constant for O2  mol/g (at infinite pressure)
-  #param.qBs=0.00312  #saturation constant for N2  mol/g (at infinite pressure)
-
-  #For 5A:
-  #param.bA=0.052    # 1/bar @ Room temp
-  #param.bB=0.165    # 1/bar @ Room temp
-  #param.qAs=0.0019  #saturation constant for O2  mol/g (at infinite pressure)
-  #param.qBs=0.0025  #saturation constant for N2  mol/g (at infinite pressure)
-  #param.kA=.15
-  #param.kB=.05
-
-  #From the new paper
+  #Adsorbent and fluid dynmaics parameters 
   param.rho_s=1130       #adsorbent density kg/m3 (was rho_pellet)
   param.rho_w=7800       #wall density kg/m3
   param.Cpg=30.7     #specific heat capacity of gas phase [J/mol/K]
@@ -219,7 +190,7 @@ def create_param(mods, print=print,verbose=False):
     param.state_sizes.append(param.N)
   param.area=(param.D/2)**2*math.pi     #[m2]
   param.volume=param.area*param.L
-  #print('canister volume is {} L'.format(param.volume*1000))
+
   param.rin=param.D/2
   param.rout=param.rin + 0.25
   param.epst=param.epsilon/(1-param.epsilon)
@@ -228,10 +199,7 @@ def create_param(mods, print=print,verbose=False):
   #param.deltaZ=param.cellsize/param.L   # nondimensional deltaZ
   param.deltaZ=1/param.N  # nondimensional deltaZ
   param.container_vol=param.area*param.L #volume of reactor (m3)
-  #We compute the initial flow rate and use that for velocity normalization
-  #in_flow=orifice.orifice_flow2(param.feed_pressure*1e5/1000,100,param.input_orifice,T=param.Ta)/60
-  #in_vel=in_flow/param.area    # [m/s]
-  #param.norm_v0=in_vel  # [m/s]  feed velocity, which varies
+
 
   #reference value of the statevaribales for normalization
   param.PH=param.feed_pressure*1e5   #Pa, will be the normalization pressure
@@ -240,38 +208,47 @@ def create_param(mods, print=print,verbose=False):
   param.norm_P0=param.PH
   param.norm_T0=298 # [K] temperature
   assert sum(param.feed_yi) == 1 and len(param.feed_yi) == param.nocomponents
-  #molecular weight of air is 29 g/mol or 29e-03 kg/mol
-  #param.rho_g=100000/param.R/param.Ta*29e-3   # Needs to be adjusted for pressure/Temp
-  
-  #param.Dp=param.Dm/param.tauprime
 
+  #parameters used in setting boundary conditions
+  if param.bed == "VPSA": #4-step VPSA 
+    param.norm_tpre = param.tpre / param.norm_t0
+    param.norm_tads = (param.tpre +param.tads) / param.norm_t0
+    param.norm_tblw = (param.tpre +param.tads + param.tblw) / param.norm_t0
+    param.norm_teva = (param.tpre+ param.tads + param.tblw + param.teva) / param.norm_t0
+    param.norm_tend = param.norm_teva # alias for teva used in plots.py
+    param.tstep = param.norm_teva/(param.tN-1)      #time step for ODE (dimensionless), -1 because the number of intervals = number of points(of a line segement including both ends) - 1,NOTE: Careful, avoid using arange,because when time step is not an integer,the rightmost time point is not included!
 
-  param.norm_tpre = param.tpre / param.norm_t0
-  param.norm_tads = (param.tpre +param.tads) / param.norm_t0
-  param.norm_tblw = (param.tpre +param.tads + param.tblw) / param.norm_t0
-  param.norm_tend = (param.tpre+ param.tads + param.tblw + param.teva) / param.norm_t0
-  param.tstep = param.norm_tend/(param.tN-1)      #time step for ODE (dimensionless), -1 because the number of intervals = number of points(of a line segement including both ends) - 1,NOTE: Careful, avoid using arange,because when time step is not an integer,the rightmost time point is not included!
+    # the index of descritized time varaible at the end of each step  
+    param.index_tpre = math.floor(param.norm_tpre/param.tstep)
+    param.index_tads = math.floor(param.norm_tads/param.tstep)
+    param.index_tblw = math.floor(param.norm_tblw/param.tstep)
+    param.index_teva = math.floor(param.norm_teva/param.tstep)
 
-  # the index of descritized time varaible at the end of each step  
-  param.index_tpre = math.floor(param.norm_tpre/param.tstep)
-  param.index_tads = math.floor(param.norm_tads/param.tstep)
-  param.index_tblw = math.floor(param.norm_tblw/param.tstep)
-  param.index_tend = math.floor(param.norm_tend/param.tstep)
+    #define product stream
+    #param.collect = ['zL_tads','z0_teva','zL_tblw'] # where each component is collected, following the format "z+[0/L](z=0/z=L)+_t[pre/ads/blw/eva](three letter code indicating each step)"
+    param.collect = product_loc(param.bi,param.ynames)
 
-  #define product stream
-  #param.collect = ['zL_tads','z0_teva','zL_tblw'] # where each component is collected, following the format "z+[0/L](z=0/z=L)+_t[pre/ads/blw/eva](three letter code indicating each step)"
-  param.collect = product_loc(param.bi)
-  #NOTE: norm.v0 is computed after this, will be set to param.v0
-  #Axial dispersion coefficient m2/sec
-  #param.DL=0.7*param.Dm+0.5*param.norm_v0*param.rp*2.0
+  if param.bed == "DRPSA": #6-step DR-PSA
+      #normalized time durations for a DR-PSA 
+    param.norm_tpre =  param.tpre / param.norm_t0 
+    param.norm_tads = (param.tpre + param.tads) / param.norm_t0
+    param.norm_thr  = (param.tpre + param.tads + param.thr) / param.norm_t0 
+    param.norm_tblw = (param.tpre + param.tads + param.thr + param.tblw) / param.norm_t0
+    param.norm_teva = (param.tpre + param.tads + param.thr + param.tblw + param.teva) / param.norm_t0
+    param.norm_tlr  = (param.tpre + param.tads + param.thr + param.tblw + param.teva + param.tlr ) / param.norm_t0
+    param.norm_tend = param.norm_tlr # which step is the last of a cycle
+    param.tstep = param.norm_tlr/(param.tN-1)      #time step for ODE (dimensionless), -1 because the number of intervals = number of points(of a line segement including both ends) - 1,NOTE: Careful, avoid using arange,because when time step is not an integer,the rightmost time point is not included!
 
-  #print('param.DL={}'.format(param.DL))
-  #compute param.end_time for the simulation
-  #want exactly 1 to be not None and 1 None
-  #assert (mod.cycles is None) + (mod.time is None) == 1
-  #total time to simulate (dimensionless).  This is handled differently because
-  #we allow 2 ways to override (cycles takes precedence over time)
-  #First we check for real_cycle_time and real_vent_time
+    # the index of descritized time varaible at the end of each step  
+    param.index_tpre = math.floor(param.norm_tpre/param.tstep)
+    param.index_tads = math.floor(param.norm_tads/param.tstep)
+    param.index_thr =  math.floor(param.norm_thr/param.tstep)
+    param.index_tblw = math.floor(param.norm_tblw/param.tstep)
+    param.index_teva = math.floor(param.norm_teva/param.tstep)
+    param.index_tlr =  math.floor(param.norm_tlr/param.tstep)
+    param.lp_yi= param.feed_yi
+    param.hp_yi= param.feed_yi
+    param.collect = product_loc(param.bi, param.ynames)
   if verbose:
     print("parameter initialization completed")
   return param

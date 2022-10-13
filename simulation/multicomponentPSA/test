@@ -73,12 +73,18 @@ mofdict=getisothermparam(isothermdatabase,'NEXXEV',["C2H2","ethene","ethane"])
 
 n_proccess = 8 # the number of processes to be used
 pool = multiprocessing.Pool(n_proccess)
-problem = PSA_optimization(runner=pool.starmap, func_eval=starmap_parallelized_eval)
+
 
 
 ### simulation
+#problem = PSA_optimization(runner=pool.starmap, func_eval=starmap_parallelized_eval)
 #bunch, status = problem.css_simulate()
 #problem.plot()
+
+### simulation of 6-step DRPSA
+problem = PSA_optimization(bedmodel="DRPSA",runner=pool.starmap, func_eval=starmap_parallelized_eval)
+bunch, status = problem.css_simulate()
+problem.plot()
 
 ### optimization
 # algorithm = NSGA2(
@@ -103,4 +109,5 @@ problem = PSA_optimization(runner=pool.starmap, func_eval=starmap_parallelized_e
 
 
 #optimization analysis
-problem.optanalysis()
+#problem.optanalysis()
+

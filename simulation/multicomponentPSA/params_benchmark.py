@@ -232,14 +232,14 @@ def create_param(mods, print=print):
   param.norm_tpre = param.tpre / param.norm_t0
   param.norm_tads = (param.tpre +param.tads) / param.norm_t0
   param.norm_tblw = (param.tpre +param.tads + param.tblw) / param.norm_t0
-  param.norm_tend = (param.tpre+ param.tads + param.tblw + param.teva) / param.norm_t0
-  param.tstep = param.norm_tend/(param.tN-1)      #time step for ODE (dimensionless), -1 because the number of intervals = number of points(of a line segement including both ends) - 1,NOTE: Careful, avoid using arange,because when time step is not an integer,the rightmost time point is not included!
+  param.norm_teva = (param.tpre+ param.tads + param.tblw + param.teva) / param.norm_t0
+  param.tstep = param.norm_teva/(param.tN-1)      #time step for ODE (dimensionless), -1 because the number of intervals = number of points(of a line segement including both ends) - 1,NOTE: Careful, avoid using arange,because when time step is not an integer,the rightmost time point is not included!
 
   # the index of descritized time varaible at the end of each step  
   param.index_tpre = math.floor(param.norm_tpre/param.tstep)
   param.index_tads = math.floor(param.norm_tads/param.tstep)
   param.index_tblw = math.floor(param.norm_tblw/param.tstep)
-  param.index_tend = math.floor(param.norm_tend/param.tstep)
+  param.index_teva = math.floor(param.norm_teva/param.tstep)
 
   #NOTE: norm.v0 is computed after this, will be set to param.v0
   #Axial dispersion coefficient m2/sec
